@@ -69,7 +69,6 @@ extension RoomListViewController: UITableViewDataSource {
 extension RoomListViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let room = viewModel.room(at: indexPath.row) else { return }
-        let liveRoomViewController = LiveRoomViewController(room: room)
-        navigationController?.pushViewController(liveRoomViewController, animated: true)
+        AppRouter.shared.pushLiveRoom(from: self, room: room)
     }
 }

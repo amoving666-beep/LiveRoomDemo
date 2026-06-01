@@ -6,3 +6,8 @@
 //
 
 import Foundation
+
+protocol LiveStreamServiceProtocol {
+    func prepareStream(completion: @escaping (LiveStreamState) -> Void)
+    func stopStream()
+}

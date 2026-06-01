@@ -6,3 +6,10 @@
 //
 
 import Foundation
+
+enum LiveStreamState {
+    case idle
+    case connecting
+    case playing
+    case failed(String)
+}

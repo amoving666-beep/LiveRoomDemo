@@ -6,3 +6,7 @@
 //
 
 import Foundation
+
+protocol ChatServiceProtocol {
+    func sendMessage(_ text: String, completion: @escaping (Result<ChatMessage, Error>) -> Void)
+}
