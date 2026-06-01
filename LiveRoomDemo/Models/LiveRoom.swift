@@ -6,3 +6,10 @@
 //
 
 import Foundation
+
+struct LiveRoom {
+    let id: String
+    let title: String
+    let anchorName: String
+    let viewerCount: Int
+}

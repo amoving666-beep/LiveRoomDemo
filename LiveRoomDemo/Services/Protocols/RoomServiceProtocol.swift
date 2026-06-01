@@ -6,3 +6,7 @@
 //
 
 import Foundation
+
+protocol RoomServiceProtocol {
+    func fetchRooms(completion: @escaping (Result<[LiveRoom], Error>) -> Void)
+}
