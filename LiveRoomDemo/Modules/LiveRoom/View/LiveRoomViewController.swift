@@ -13,13 +13,10 @@ final class LiveRoomViewController: UIViewController {
     private let viewModel = LiveRoomViewModel()
 
     // MARK: - 顶部信息区域
-    private let headerContainerView = UIView()
-    private let anchorLabel = UILabel()
-    private let viewerCountLabel = UILabel()
+    private let headerView = LiveRoomHeaderView()
 
     // MARK: - 模拟播放器区域
-    private let playerPlaceholderView = UIView()
-    private let playerStatusLabel = UILabel()
+    private let playerView = LivePlayerPlaceholderView()
 
     // MARK: - 聊天消息列表区域
     private let chatTableView = UITableView(frame: .zero, style: .plain)
@@ -48,52 +45,16 @@ final class LiveRoomViewController: UIViewController {
         title = room.title
         view.backgroundColor = .systemBackground
 
-        setupHeaderView()
-        setupPlayerPlaceholderView()
+        headerView.configure(with: room)
+        view.addSubview(headerView)
+
+        view.addSubview(playerView)
+
         setupChatTableView()
         setupInputView()
         setupLayout()
     }
 
-    private func setupHeaderView() {
-        headerContainerView.backgroundColor = .secondarySystemBackground
-
-        anchorLabel.text = "主播：\(room.anchorName)"
-        anchorLabel.font = .boldSystemFont(ofSize: 16)
-
-        viewerCountLabel.text = "在线：\(room.viewerCount)"
-        viewerCountLabel.font = .systemFont(ofSize: 14)
-        viewerCountLabel.textColor = .secondaryLabel
-
-        let stackView = UIStackView(arrangedSubviews: [anchorLabel, viewerCountLabel])
-        stackView.axis = .vertical
-        stackView.spacing = 6
-
-        headerContainerView.addSubview(stackView)
-        view.addSubview(headerContainerView)
-
-        stackView.snp.makeConstraints { make in
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(-16)
-            make.centerY.equalToSuperview()
-        }
-    }
-
-    private func setupPlayerPlaceholderView() {
-        playerPlaceholderView.backgroundColor = .black
-
-        playerStatusLabel.text = "模拟播放器区域"
-        playerStatusLabel.textColor = .white
-        playerStatusLabel.font = .boldSystemFont(ofSize: 18)
-        playerStatusLabel.textAlignment = .center
-
-        playerPlaceholderView.addSubview(playerStatusLabel)
-        view.addSubview(playerPlaceholderView)
-
-        playerStatusLabel.snp.makeConstraints { make in
-            make.center.equalToSuperview()
-        }
-    }
 
     private func setupChatTableView() {
         chatTableView.dataSource = self
@@ -125,30 +86,18 @@ final class LiveRoomViewController: UIViewController {
     }
 
     private func renderStreamState(_ state: LiveStreamState) {
-        switch state {
-        case .idle:
-            playerStatusLabel.text = "模拟播放器区域"
-
-        case .connecting:
-            playerStatusLabel.text = "连接中..."
-
-        case .playing:
-            playerStatusLabel.text = "正在播放"
-
-        case .failed(let message):
-            playerStatusLabel.text = "播放失败：\(message)"
-        }
+        playerView.render(state: state)
     }
 
     private func setupLayout() {
-        headerContainerView.snp.makeConstraints { make in
+        headerView.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             make.leading.trailing.equalToSuperview()
             make.height.equalTo(72)
         }
 
-        playerPlaceholderView.snp.makeConstraints { make in
-            make.top.equalTo(headerContainerView.snp.bottom)
+        playerView.snp.makeConstraints { make in
+            make.top.equalTo(headerView.snp.bottom)
             make.leading.trailing.equalToSuperview()
             make.height.equalTo(220)
         }
@@ -160,7 +109,7 @@ final class LiveRoomViewController: UIViewController {
         }
 
         chatTableView.snp.makeConstraints { make in
-            make.top.equalTo(playerPlaceholderView.snp.bottom)
+            make.top.equalTo(playerView.snp.bottom)
             make.leading.trailing.equalToSuperview()
             make.bottom.equalTo(chatInputView.snp.top)
         }
