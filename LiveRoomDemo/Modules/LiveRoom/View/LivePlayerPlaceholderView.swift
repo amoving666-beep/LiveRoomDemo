@@ -30,6 +30,9 @@ final class LivePlayerPlaceholderView: UIView {
         case .playing:
             statusLabel.text = "正在播放"
 
+        case .reconnecting:
+            statusLabel.text = "重连中..."
+
         case .failed(let message):
             statusLabel.text = "播放失败：\(message)"
         }

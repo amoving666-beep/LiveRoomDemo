@@ -10,65 +10,88 @@ import Foundation
 final class LiveRoomStateMachine {
     private(set) var currentState: LiveRoomState = .idle
 
-    func handle(event: LiveRoomEvent) -> LiveRoomState {
-        let nextState = transition(from: currentState, event: event)
+    func transition(by event: LiveRoomEvent) -> LiveRoomState {
+        let nextState = resolveNextState(from: currentState, event: event)
         currentState = nextState
         return nextState
     }
 
     /*
-     状态流转图
+     直播间状态机流转表
 
-     idle
-       ↓ enterRoom
-     entering
-       ↓ roomInfoLoaded
-     connecting
-       ↓ streamPlaying
-     playing
-       ↓ networkLost
-     reconnecting
+     当前状态        事件                    下一个状态        说明
+     idle           enterRoom               entering        用户进入
+     entering       roomInfoLoaded          connecting      房间信息成功
+     entering       roomInfoLoadFailed      failed          房间信息失败
 
-     reconnecting
-       ↓ reconnectSuccess
-     playing
+     connecting     streamConnecting        connecting      开始拉流
+     connecting     streamPlaying           playing         拉流成功
+     connecting     streamFailed            failed          首次拉流失败
 
-     reconnecting
-       ↓ reconnectFailed
-     failed
+     playing        networkLost             reconnecting    播放中断网
+     playing        streamInterrupted       reconnecting    播放流中断
+     playing        anchorEnded             ended           主播下播
+     playing        roomClosed              ended           房间关闭
+     playing        kickedOut               ended           被踢出房间
 
-     任意状态
-       ↓ leaveRoom
-     ended
+     reconnecting   reconnectSuccess        playing         重连成功
+     reconnecting   reconnectFailed         failed          重连失败
+     reconnecting   reconnectTimeout        failed          重连超时
+     reconnecting   anchorEnded             ended           重连期间主播下播
+
+     failed         retry                   connecting      用户点击重试
+     failed         leaveRoom               ended           离开房间
+
+     ended          任意事件                 ended           终态，不再恢复
+     任意状态        leaveRoom               ended           用户主动离开
+     
+     
+     设计原则：
+     1. ViewModel 只负责把外部行为转换成 LiveRoomEvent。
+     2. 能不能切状态，只由 LiveRoomStateMachine 决定。
+     3. 非法事件不报错，保持当前状态。
      */
     
-    private func transition(from state: LiveRoomState, event: LiveRoomEvent) -> LiveRoomState {
+    private func resolveNextState(from state: LiveRoomState, event: LiveRoomEvent) -> LiveRoomState {
         switch (state, event) {
-        // 用户进入直播间
+        // 空闲状态下，用户进入直播间：idle -> entering
         case (.idle, .enterRoom):
             return .entering
 
-        // 房间信息加载完成，开始连接直播流
+        // 房间信息加载完成：entering -> connecting
         case (.entering, .roomInfoLoaded):
             return .connecting
 
-        // 拉流成功，进入播放状态
+        // 直播流开始连接：connecting -> connecting
+        // 当前状态不变，但保留事件语义，方便后续扩展加载 UI
+        case (.connecting, .streamConnecting):
+            return .connecting
+
+        // 拉流成功：connecting -> playing
         case (.connecting, .streamPlaying):
             return .playing
 
-        // 播放过程中网络中断
+        // 播放过程中网络中断：playing -> reconnecting
         case (.playing, .networkLost):
             return .reconnecting
 
-        // 重连成功，恢复播放
+        // 播放中直接失败：playing -> failed
+        case (.playing, .reconnectFailed(let message)):
+            return .failed(message)
+
+        // 重连成功：reconnecting -> playing
         case (.reconnecting, .reconnectSuccess):
             return .playing
 
-        // 重连失败，进入失败状态
+        // 重连失败：reconnecting -> failed
         case (.reconnecting, .reconnectFailed(let message)):
             return .failed(message)
 
-        // 用户离开直播间
+        // 失败后手动重连成功：failed -> playing
+        case (.failed, .reconnectSuccess):
+            return .playing
+
+        // 用户离开直播间：任意状态 -> ended
         case (_, .leaveRoom):
             return .ended
 

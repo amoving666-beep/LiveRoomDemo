@@ -23,6 +23,13 @@ final class LiveRoomViewController: UIViewController {
 
     // MARK: - 底部输入区域
     private let chatInputView = ChatInputView()
+    private var chatInputBottomConstraint: Constraint?
+
+    // MARK: - 房间状态展示
+    private let roomStateLabel = UILabel()
+
+    // MARK: - 键盘监听
+    private var keyboardObserver: KeyboardObserver?
 
     init(room: LiveRoom) {
         self.room = room
@@ -33,23 +40,29 @@ final class LiveRoomViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    deinit {
+        keyboardObserver?.stop()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         bindViewModel()
+        bindKeyboardObserver()
 
         // 进入直播间，启动房间生命周期状态流转
         viewModel.enterRoom()
     }
 
     private func setupUI() {
-        title = "直播间 - 空闲"
+        title = "直播间"
         view.backgroundColor = .systemBackground
 
         headerView.configure(with: room)
         view.addSubview(headerView)
 
         view.addSubview(playerView)
+        setupRoomStateLabel()
 
         setupChatTableView()
         setupInputView()
@@ -71,6 +84,17 @@ final class LiveRoomViewController: UIViewController {
         view.addSubview(chatInputView)
     }
 
+    private func setupRoomStateLabel() {
+        roomStateLabel.text = "房间状态：空闲"
+        roomStateLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        roomStateLabel.textColor = .secondaryLabel
+        roomStateLabel.textAlignment = .center
+        roomStateLabel.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.85)
+        roomStateLabel.layer.cornerRadius = 12
+        roomStateLabel.layer.masksToBounds = true
+        view.addSubview(roomStateLabel)
+    }
+
     private func bindViewModel() {
         viewModel.onMessagesChanged = { [weak self] in
             DispatchQueue.main.async {
@@ -87,8 +111,7 @@ final class LiveRoomViewController: UIViewController {
 
         viewModel.onRoomStateChanged = { [weak self] state in
             DispatchQueue.main.async {
-                self?.title = "直播间 - \(state.displayText)"
-                print("房间状态变化：\(state)")
+                self?.renderRoomState(state)
             }
         }
     }
@@ -96,6 +119,13 @@ final class LiveRoomViewController: UIViewController {
     // 根据播放器状态刷新模拟播放器区域
     private func renderStreamState(_ state: LiveStreamState) {
         playerView.render(state: state)
+    }
+
+    // 根据房间生命周期状态刷新页面 UI
+    private func renderRoomState(_ state: LiveRoomState) {
+//        title = "直播间 - \(state.displayText)"
+        roomStateLabel.text = "房间状态：\(state.displayText)"
+        print("房间状态变化：\(state)")
     }
 
     private func setupLayout() {
@@ -111,9 +141,16 @@ final class LiveRoomViewController: UIViewController {
             make.height.equalTo(220)
         }
 
+        roomStateLabel.snp.makeConstraints { make in
+            make.top.equalTo(playerView.snp.top).offset(12)
+            make.trailing.equalTo(playerView.snp.trailing).offset(-12)
+            make.height.equalTo(24)
+            make.width.greaterThanOrEqualTo(120)
+        }
+
         chatInputView.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview()
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+            chatInputBottomConstraint = make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).constraint
             make.height.equalTo(56)
         }
 
@@ -121,6 +158,34 @@ final class LiveRoomViewController: UIViewController {
             make.top.equalTo(playerView.snp.bottom)
             make.leading.trailing.equalToSuperview()
             make.bottom.equalTo(chatInputView.snp.top)
+        }
+    }
+
+    // 绑定键盘监听，键盘弹出时上移输入框
+    private func bindKeyboardObserver() {
+        let observer = KeyboardObserver(view: view)
+
+        observer.onKeyboardChange = { [weak self] offset, notification in
+            self?.updateChatInputBottom(offset: offset, notification: notification)
+        }
+
+        observer.onKeyboardHide = { [weak self] notification in
+            self?.updateChatInputBottom(offset: 0, notification: notification)
+        }
+
+        observer.start()
+        keyboardObserver = observer
+    }
+
+    private func updateChatInputBottom(offset: CGFloat, notification: Notification) {
+        let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval ?? 0.25
+        let curveRawValue = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt ?? UIView.AnimationOptions.curveEaseInOut.rawValue
+        let options = UIView.AnimationOptions(rawValue: curveRawValue << 16)
+
+        chatInputBottomConstraint?.update(offset: offset)
+
+        UIView.animate(withDuration: duration, delay: 0, options: options) {
+            self.view.layoutIfNeeded()
         }
     }
 

@@ -16,8 +16,9 @@ final class LiveRoomViewModel {
     
     // MARK: - 直播间状态机
     
-    // 统一处理直播间事件，并根据规则产出新的房间状态
+    // 状态机负责根据事件计算直播间的下一个生命周期状态
     private let stateMachine = LiveRoomStateMachine()
+
     // MARK: - 聊天状态
     
     // 当前聊天消息列表，属于页面状态
@@ -51,8 +52,8 @@ final class LiveRoomViewModel {
     // 用户进入直播间
     // 当前 Phase2 先模拟：进入房间 -> 房间信息加载完成 -> 准备直播流
     func enterRoom() {
-        handle(event: .enterRoom)
-        handle(event: .roomInfoLoaded)
+        dispatchRoomEvent(.enterRoom)
+        dispatchRoomEvent(.roomInfoLoaded)
         prepareStream()
     }
 
@@ -62,31 +63,97 @@ final class LiveRoomViewModel {
         liveStreamService.prepareStream { [weak self] state in
             guard let self else { return }
 
-            self.streamState = state
-            self.onStreamStateChanged?(state)
+            self.updateStreamState(state)
 
             switch state {
             case .idle:
                 break
 
             case .connecting:
-                self.handle(event: .streamConnecting)
+                self.dispatchRoomEvent(.streamConnecting)
 
             case .playing:
-                self.handle(event: .streamPlaying)
+                self.dispatchRoomEvent(.streamPlaying)
+
+            case .reconnecting:
+                self.dispatchRoomEvent(.networkLost)
 
             case .failed(let message):
-                self.handle(event: .reconnectFailed(message))
+                self.dispatchRoomEvent(.reconnectFailed(message))
             }
         }
     }
 
-    // 所有直播间事件统一从这里进入
-    // Event -> StateMachine -> LiveRoomState -> 通知 VC
-    func handle(event: LiveRoomEvent) {
-        let nextState = stateMachine.handle(event: event)
+    // 更新播放器状态，并通知 VC 刷新播放器区域
+    private func updateStreamState(_ state: LiveStreamState) {
+        streamState = state
+        onStreamStateChanged?(state)
+    }
+
+    // 模拟网络断开：playing -> reconnecting
+    // 由用户输入“断线”手动触发
+    private func simulateNetworkLost() {
+        dispatchRoomEvent(.networkLost)
+        updateStreamState(.reconnecting)
+    }
+
+    // 模拟重连成功：reconnecting -> playing
+    // 由用户输入“重连”手动触发
+    private func simulateReconnectSuccess() {
+        dispatchRoomEvent(.reconnectSuccess)
+        updateStreamState(.playing)
+    }
+
+    // 模拟播放失败：playing / reconnecting -> failed
+    // 由用户输入“失败”手动触发
+    private func simulateFailure() {
+        let message = "模拟播放失败"
+        dispatchRoomEvent(.reconnectFailed(message))
+        updateStreamState(.failed(message))
+    }
+
+    // 用户离开直播间：任意状态 -> ended
+    // 由用户输入“结束”手动触发
+    private func leaveRoom() {
+        dispatchRoomEvent(.leaveRoom)
+        updateStreamState(.idle)
+        liveStreamService.stopStream()
+    }
+
+    // 输入“断线 / 重连 / 失败 / 结束”时，不发送聊天消息，而是模拟外部事件
+    // 注意：这里不是直接设置状态，最终能否切换由 LiveRoomStateMachine 决定
+    private func handleDebugCommand(_ text: String) -> Bool {
+        switch text {
+        case "断线":
+            simulateNetworkLost()
+            return true
+
+        case "重连":
+            simulateReconnectSuccess()
+            return true
+
+        case "失败":
+            simulateFailure()
+            return true
+
+        case "结束":
+            leaveRoom()
+            return true
+
+        default:
+            return false
+        }
+    }
+
+    // 分发直播间事件
+    // ViewModel 只负责把外部行为转换成事件，真正的状态流转交给 LiveRoomStateMachine
+    func dispatchRoomEvent(_ event: LiveRoomEvent) {
+        let oldState = roomState
+        let nextState = stateMachine.transition(by: event)
         roomState = nextState
+        print("状态流转：\(oldState.displayText) -- \(event) --> \(nextState.displayText)")
         onRoomStateChanged?(nextState)
+       
     }
 
     // 发送聊天消息
@@ -94,6 +161,10 @@ final class LiveRoomViewModel {
     func sendMessage(_ text: String) {
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else { return }
+
+        if handleDebugCommand(trimmedText) {
+            return
+        }
 
         chatService.sendMessage(trimmedText) { [weak self] result in
             guard let self else { return }

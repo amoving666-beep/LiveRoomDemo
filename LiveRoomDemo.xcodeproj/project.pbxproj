@@ -37,6 +37,7 @@
 		2BDF54412FCF0645008EB79A /* LiveRoomState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDF54402FCF0645008EB79A /* LiveRoomState.swift */; };
 		2BDF54432FCF064F008EB79A /* LiveRoomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDF54422FCF064F008EB79A /* LiveRoomEvent.swift */; };
 		2BDF54452FCF06BC008EB79A /* LiveRoomStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDF54442FCF06BC008EB79A /* LiveRoomStateMachine.swift */; };
+		2BDF54482FCF3522008EB79A /* KeyboardObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDF54472FCF3522008EB79A /* KeyboardObserver.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +91,7 @@
 		2BDF54402FCF0645008EB79A /* LiveRoomState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomState.swift; sourceTree = "<group>"; };
 		2BDF54422FCF064F008EB79A /* LiveRoomEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomEvent.swift; sourceTree = "<group>"; };
 		2BDF54442FCF06BC008EB79A /* LiveRoomStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomStateMachine.swift; sourceTree = "<group>"; };
+		2BDF54472FCF3522008EB79A /* KeyboardObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardObserver.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -288,6 +290,7 @@
 			children = (
 				2BAC48F72FCDABE2008ADCDD /* Base.swift */,
 				2BAC48F92FCDABEB008ADCDD /* Extensions.swift */,
+				2BDF54472FCF3522008EB79A /* KeyboardObserver.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -459,6 +462,7 @@
 				2BAC48D22FCDAB18008ADCDD /* AppRouter.swift in Sources */,
 				2BAC48DE2FCDAB63008ADCDD /* LiveRoomHeaderView.swift in Sources */,
 				2BAC48F42FCDABCC008ADCDD /* ChatMessage.swift in Sources */,
+				2BDF54482FCF3522008EB79A /* KeyboardObserver.swift in Sources */,
 				2BAC48D82FCDAB42008ADCDD /* RoomCell.swift in Sources */,
 				2BDF54452FCF06BC008EB79A /* LiveRoomStateMachine.swift in Sources */,
 				2BAC48E22FCDAB76008ADCDD /* ChatMessageCell.swift in Sources */,

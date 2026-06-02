@@ -12,4 +12,5 @@ enum LiveStreamState {
     case connecting
     case playing
     case failed(String)
+    case reconnecting
 }
