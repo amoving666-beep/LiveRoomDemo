@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 final class RoomListViewController: UIViewController {
     private let viewModel = RoomListViewModel()
@@ -22,21 +23,19 @@ final class RoomListViewController: UIViewController {
         title = "直播房间"
         view.backgroundColor = .systemBackground
 
-        tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(RoomCell.self, forCellReuseIdentifier: RoomCell.reuseIdentifier)
 
         view.addSubview(tableView)
 
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+        tableView.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+            make.leading.trailing.bottom.equalToSuperview()
+        }
     }
 
+    // 绑定 ViewModel 回调，房间数据变化后刷新列表
     private func bindViewModel() {
         viewModel.onRoomsChanged = { [weak self] in
             DispatchQueue.main.async {
@@ -69,6 +68,7 @@ extension RoomListViewController: UITableViewDataSource {
 extension RoomListViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let room = viewModel.room(at: indexPath.row) else { return }
+        // 页面跳转统一交给 AppRouter 处理
         AppRouter.shared.pushLiveRoom(from: self, room: room)
     }
 }

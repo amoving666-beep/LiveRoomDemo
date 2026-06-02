@@ -11,7 +11,7 @@ import SnapKit
 final class LiveRoomViewController: UIViewController {
     private let room: LiveRoom
     private let viewModel = LiveRoomViewModel()
-
+    
     // MARK: - 顶部信息区域
     private let headerView = LiveRoomHeaderView()
 
@@ -23,7 +23,6 @@ final class LiveRoomViewController: UIViewController {
 
     // MARK: - 底部输入区域
     private let chatInputView = ChatInputView()
-
 
     init(room: LiveRoom) {
         self.room = room
@@ -38,11 +37,13 @@ final class LiveRoomViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         bindViewModel()
-        viewModel.prepareStream()
+
+        // 进入直播间，启动房间生命周期状态流转
+        viewModel.enterRoom()
     }
 
     private func setupUI() {
-        title = room.title
+        title = "直播间 - 空闲"
         view.backgroundColor = .systemBackground
 
         headerView.configure(with: room)
@@ -83,8 +84,16 @@ final class LiveRoomViewController: UIViewController {
                 self?.renderStreamState(state)
             }
         }
+
+        viewModel.onRoomStateChanged = { [weak self] state in
+            DispatchQueue.main.async {
+                self?.title = "直播间 - \(state.displayText)"
+                print("房间状态变化：\(state)")
+            }
+        }
     }
 
+    // 根据播放器状态刷新模拟播放器区域
     private func renderStreamState(_ state: LiveStreamState) {
         playerView.render(state: state)
     }
@@ -115,6 +124,7 @@ final class LiveRoomViewController: UIViewController {
         }
     }
 
+    // 发送新消息后滚动到聊天列表底部
     private func scrollToLatestMessage() {
         guard !viewModel.messages.isEmpty else { return }
         let indexPath = IndexPath(row: viewModel.messages.count - 1, section: 0)
@@ -135,4 +145,3 @@ extension LiveRoomViewController: UITableViewDataSource {
         return cell
     }
 }
-   

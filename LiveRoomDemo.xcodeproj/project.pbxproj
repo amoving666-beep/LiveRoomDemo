@@ -34,6 +34,9 @@
 		2BAC48F82FCDABE2008ADCDD /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48F72FCDABE2008ADCDD /* Base.swift */; };
 		2BAC48FA2FCDABEB008ADCDD /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48F92FCDABEB008ADCDD /* Extensions.swift */; };
 		2BAC48FD2FCDB52E008ADCDD /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2BAC48FC2FCDB52E008ADCDD /* SnapKit */; };
+		2BDF54412FCF0645008EB79A /* LiveRoomState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDF54402FCF0645008EB79A /* LiveRoomState.swift */; };
+		2BDF54432FCF064F008EB79A /* LiveRoomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDF54422FCF064F008EB79A /* LiveRoomEvent.swift */; };
+		2BDF54452FCF06BC008EB79A /* LiveRoomStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDF54442FCF06BC008EB79A /* LiveRoomStateMachine.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,6 +87,9 @@
 		2BAC48F52FCDABD4008ADCDD /* LiveStreamState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStreamState.swift; sourceTree = "<group>"; };
 		2BAC48F72FCDABE2008ADCDD /* Base.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base.swift; sourceTree = "<group>"; };
 		2BAC48F92FCDABEB008ADCDD /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		2BDF54402FCF0645008EB79A /* LiveRoomState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomState.swift; sourceTree = "<group>"; };
+		2BDF54422FCF064F008EB79A /* LiveRoomEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomEvent.swift; sourceTree = "<group>"; };
+		2BDF54442FCF06BC008EB79A /* LiveRoomStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomStateMachine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -204,6 +210,9 @@
 				2BAC48F12FCDABC4008ADCDD /* LiveRoom.swift */,
 				2BAC48F32FCDABCC008ADCDD /* ChatMessage.swift */,
 				2BAC48F52FCDABD4008ADCDD /* LiveStreamState.swift */,
+				2BDF54402FCF0645008EB79A /* LiveRoomState.swift */,
+				2BDF54422FCF064F008EB79A /* LiveRoomEvent.swift */,
+				2BDF54442FCF06BC008EB79A /* LiveRoomStateMachine.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -435,12 +444,14 @@
 				2BAC48F62FCDABD4008ADCDD /* LiveStreamState.swift in Sources */,
 				2BAC48C52FCDA806008ADCDD /* AppDelegate.swift in Sources */,
 				2BAC48E82FCDAB96008ADCDD /* ChatServiceProtocol.swift in Sources */,
+				2BDF54412FCF0645008EB79A /* LiveRoomState.swift in Sources */,
 				2BAC48E02FCDAB6D008ADCDD /* ChatInputView.swift in Sources */,
 				2BAC48C62FCDA806008ADCDD /* SceneDelegate.swift in Sources */,
 				2BAC48EA2FCDAB9E008ADCDD /* LiveStreamServiceProtocol.swift in Sources */,
 				2BAC48E42FCDAB82008ADCDD /* LiveRoomViewModel.swift in Sources */,
 				2BAC48EE2FCDABB1008ADCDD /* MockChatService.swift in Sources */,
 				2BAC48D62FCDAB36008ADCDD /* RoomListViewModel.swift in Sources */,
+				2BDF54432FCF064F008EB79A /* LiveRoomEvent.swift in Sources */,
 				2BAC48E62FCDAB8D008ADCDD /* RoomServiceProtocol.swift in Sources */,
 				2BAC48F82FCDABE2008ADCDD /* Base.swift in Sources */,
 				2BAC48F02FCDABB8008ADCDD /* MockLiveStreamService.swift in Sources */,
@@ -449,6 +460,7 @@
 				2BAC48DE2FCDAB63008ADCDD /* LiveRoomHeaderView.swift in Sources */,
 				2BAC48F42FCDABCC008ADCDD /* ChatMessage.swift in Sources */,
 				2BAC48D82FCDAB42008ADCDD /* RoomCell.swift in Sources */,
+				2BDF54452FCF06BC008EB79A /* LiveRoomStateMachine.swift in Sources */,
 				2BAC48E22FCDAB76008ADCDD /* ChatMessageCell.swift in Sources */,
 				2BAC48DC2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift in Sources */,
 				2BAC48DA2FCDAB50008ADCDD /* LiveRoomViewController.swift in Sources */,
@@ -513,6 +525,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E7Y6FDL9VX;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LiveRoomDemo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -545,6 +558,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = E7Y6FDL9VX;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LiveRoomDemo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
