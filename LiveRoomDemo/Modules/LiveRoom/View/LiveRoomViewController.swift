@@ -168,30 +168,14 @@ final class LiveRoomViewController: UIViewController {
 
     // 绑定键盘监听，键盘弹出时上移输入框
     private func bindKeyboardObserver() {
-        let observer = KeyboardObserver(view: view)
+        let observer = KeyboardObserver(containerView: view)
 
-        observer.onKeyboardChange = { [weak self] offset, notification in
-            self?.updateChatInputBottom(offset: offset, notification: notification)
-        }
-
-        observer.onKeyboardHide = { [weak self] notification in
-            self?.updateChatInputBottom(offset: 0, notification: notification)
+        observer.onKeyboardOffsetChange = { [weak self] offset in
+            self?.chatInputBottomConstraint?.update(offset: offset)
         }
 
         observer.start()
         keyboardObserver = observer
-    }
-
-    private func updateChatInputBottom(offset: CGFloat, notification: Notification) {
-        let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval ?? 0.25
-        let curveRawValue = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt ?? UIView.AnimationOptions.curveEaseInOut.rawValue
-        let options = UIView.AnimationOptions(rawValue: curveRawValue << 16)
-
-        chatInputBottomConstraint?.update(offset: offset)
-
-        UIView.animate(withDuration: duration, delay: 0, options: options) {
-            self.view.layoutIfNeeded()
-        }
     }
 
     // 发送新消息后滚动到聊天列表底部
