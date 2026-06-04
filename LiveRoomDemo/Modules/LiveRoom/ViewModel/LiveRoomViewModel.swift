@@ -22,7 +22,14 @@ final class LiveRoomViewModel {
     // MARK: - 聊天状态
     
     // 当前聊天消息列表，属于页面状态
-    private(set) var messages: [ChatMessage] = []
+    private(set) var messages: [ChatMessage] = [
+        ChatMessage(
+            id: UUID().uuidString,
+            userName: "系统",
+            content: "输入“断线 / 重连 / 失败 / 结束”时，可以模拟外部事件",
+            timestamp: Date()
+        )
+    ]
     
     // MARK: - 播放器状态
     
@@ -33,7 +40,9 @@ final class LiveRoomViewModel {
     
     // 当前直播间生命周期状态，例如进入中、连接中、播放中、重连中
     private(set) var roomState: LiveRoomState = .idle
-
+   
+    // 房间结束后通知 VC 退出直播间页面
+    var onRoomEnded: (() -> Void)?
     // 聊天消息变化后通知 VC 刷新聊天列表
     var onMessagesChanged: (() -> Void)?
     // 播放器状态变化后通知 VC 刷新播放器区域
@@ -118,9 +127,11 @@ final class LiveRoomViewModel {
         dispatchRoomEvent(.leaveRoom)
         updateStreamState(.idle)
         liveStreamService.stopStream()
+        onRoomEnded?()
     }
 
     // 输入“断线 / 重连 / 失败 / 结束”时，不发送聊天消息，而是模拟外部事件
+    // 同样的提示文案已作为默认系统消息展示在聊天列表第一行
     // 注意：这里不是直接设置状态，最终能否切换由 LiveRoomStateMachine 决定
     private func handleDebugCommand(_ text: String) -> Bool {
         switch text {

@@ -114,6 +114,11 @@ final class LiveRoomViewController: UIViewController {
                 self?.renderRoomState(state)
             }
         }
+        viewModel.onRoomEnded = { [weak self] in
+            DispatchQueue.main.async {
+                self?.navigationController?.popViewController(animated: true)
+            }
+        }
     }
 
     // 根据播放器状态刷新模拟播放器区域
