@@ -39,7 +39,7 @@ final class LiveRoomStateMachine {
      reconnecting   reconnectTimeout        failed          重连超时
      reconnecting   anchorEnded             ended           重连期间主播下播
 
-     failed         retry                   connecting      用户点击重试
+     failed         retryReconnect          reconnecting    失败后用户手动重试重连
      failed         leaveRoom               ended           离开房间
 
      ended          任意事件                 ended           终态，不再恢复
@@ -87,9 +87,13 @@ final class LiveRoomStateMachine {
         case (.reconnecting, .reconnectFailed(let message)):
             return .failed(message)
 
-        // 失败后手动重连成功：failed -> playing
-        case (.failed, .reconnectSuccess):
-            return .playing
+        // 失败后用户手动重试重连：failed -> reconnecting
+        case (.failed, .retryReconnect):
+            return .reconnecting
+
+        // 直播间已结束后，任何事件都不能恢复状态
+        case (.ended, _):
+            return .ended
 
         // 用户离开直播间：任意状态 -> ended
         case (_, .leaveRoom):

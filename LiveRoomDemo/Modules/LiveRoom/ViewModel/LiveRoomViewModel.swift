@@ -25,8 +25,9 @@ final class LiveRoomViewModel {
     private(set) var messages: [ChatMessage] = [
         ChatMessage(
             id: UUID().uuidString,
+            type: .system,
             userName: "系统",
-            content: "输入“断线 / 重连 / 失败 / 结束”时，可以模拟外部事件",
+            content: "输入“断线 / 重试 / 成功 / 失败 / 结束”时，可以模拟直播间事件",
             timestamp: Date()
         )
     ]
@@ -62,6 +63,11 @@ final class LiveRoomViewModel {
     // 当前 Phase2 先模拟：进入房间 -> 房间信息加载完成 -> 准备直播流
     func enterRoom() {
         dispatchRoomEvent(.enterRoom)
+        appendSystemMessage("欢迎进入直播间，Phase3 开始模拟聊天消息流")
+        appendEnterRoomMessage(userName: "游客001")
+
+        startReceivingMessages()
+
         dispatchRoomEvent(.roomInfoLoaded)
         prepareStream()
     }
@@ -102,14 +108,21 @@ final class LiveRoomViewModel {
     // 模拟网络断开：playing -> reconnecting
     // 由用户输入“断线”手动触发
     private func simulateNetworkLost() {
-        dispatchRoomEvent(.networkLost)
+        guard dispatchRoomEvent(.networkLost) else { return }
+        updateStreamState(.reconnecting)
+    }
+
+    // 模拟失败后重试重连：failed -> reconnecting
+    // 由用户输入“重试”手动触发
+    private func simulateRetryReconnect() {
+        guard dispatchRoomEvent(.retryReconnect) else { return }
         updateStreamState(.reconnecting)
     }
 
     // 模拟重连成功：reconnecting -> playing
-    // 由用户输入“重连”手动触发
+    // 由用户输入“成功”手动触发
     private func simulateReconnectSuccess() {
-        dispatchRoomEvent(.reconnectSuccess)
+        guard dispatchRoomEvent(.reconnectSuccess) else { return }
         updateStreamState(.playing)
     }
 
@@ -117,20 +130,111 @@ final class LiveRoomViewModel {
     // 由用户输入“失败”手动触发
     private func simulateFailure() {
         let message = "模拟播放失败"
-        dispatchRoomEvent(.reconnectFailed(message))
+
+        guard dispatchRoomEvent(.reconnectFailed(message)) else { return }
+
         updateStreamState(.failed(message))
     }
 
     // 用户离开直播间：任意状态 -> ended
     // 由用户输入“结束”手动触发
     private func leaveRoom() {
-        dispatchRoomEvent(.leaveRoom)
+        guard dispatchRoomEvent(.leaveRoom) else { return }
+        appendLeaveRoomMessage(userName: "我")
         updateStreamState(.idle)
+
+        chatService.stopReceivingMessages()
         liveStreamService.stopStream()
+
         onRoomEnded?()
     }
 
-    // 输入“断线 / 重连 / 失败 / 结束”时，不发送聊天消息，而是模拟外部事件
+    // 追加系统消息
+    // 用于把直播间状态变化、调试提示等事件转换成聊天列表中的消息
+    private func appendSystemMessage(_ content: String) {
+        let message = ChatMessage(
+            id: UUID().uuidString,
+            type: .system,
+            userName: "系统",
+            content: content,
+            timestamp: Date()
+        )
+
+        messages.append(message)
+        onMessagesChanged?()
+    }
+
+    // 追加进房消息
+    // 真实项目中通常来自 IM 服务端推送的用户进房事件
+    private func appendEnterRoomMessage(userName: String) {
+        let message = ChatMessage(
+            id: UUID().uuidString,
+            type: .enterRoom,
+            userName: userName,
+            content: "",
+            timestamp: Date()
+        )
+
+        messages.append(message)
+        onMessagesChanged?()
+    }
+
+    // 追加离房消息
+    // 真实项目中通常来自 IM 服务端推送的用户离房事件
+    private func appendLeaveRoomMessage(userName: String) {
+        let message = ChatMessage(
+            id: UUID().uuidString,
+            type: .leaveRoom,
+            userName: userName,
+            content: "",
+            timestamp: Date()
+        )
+
+        messages.append(message)
+        onMessagesChanged?()
+    }
+
+    // 开始接收模拟聊天消息
+    // 当前由 MockChatService 定时推送，后续可直接替换为 WebSocket 或 IM SDK 回调
+    private func startReceivingMessages() {
+        chatService.startReceivingMessages { [weak self] event in
+            guard let self else { return }
+
+            self.handleChatEvent(event)
+        }
+    }
+
+    // 处理聊天事件
+    // ChatService 或房间状态机只负责告诉 ViewModel “发生了什么事件”，ViewModel 再转换成页面可展示的 ChatMessage
+    private func handleChatEvent(_ event: ChatEvent) {
+        switch event {
+        case let .receiveUserMessage(userName, content):
+            let message = ChatMessage(
+                id: UUID().uuidString,
+                type: .user,
+                userName: userName,
+                content: content,
+                timestamp: Date()
+            )
+
+            messages.append(message)
+            onMessagesChanged?()
+
+        case let .receiveSystemMessage(content):
+            appendSystemMessage(content)
+
+        case let .userEnterRoom(userName):
+            appendEnterRoomMessage(userName: userName)
+
+        case let .userLeaveRoom(userName):
+            appendLeaveRoomMessage(userName: userName)
+
+        case let .roomStateChanged(oldState, newState):
+            appendSystemMessage("状态变化：\(oldState.displayText) -> \(newState.displayText)")
+        }
+    }
+
+    // 输入“断线 / 重试 / 成功 / 失败 / 结束”时，不发送聊天消息，而是模拟外部事件
     // 同样的提示文案已作为默认系统消息展示在聊天列表第一行
     // 注意：这里不是直接设置状态，最终能否切换由 LiveRoomStateMachine 决定
     private func handleDebugCommand(_ text: String) -> Bool {
@@ -139,7 +243,11 @@ final class LiveRoomViewModel {
             simulateNetworkLost()
             return true
 
-        case "重连":
+        case "重试":
+            simulateRetryReconnect()
+            return true
+
+        case "成功":
             simulateReconnectSuccess()
             return true
 
@@ -157,14 +265,26 @@ final class LiveRoomViewModel {
     }
 
     // 分发直播间事件
-    // ViewModel 只负责把外部行为转换成事件，真正的状态流转交给 LiveRoomStateMachine
-    func dispatchRoomEvent(_ event: LiveRoomEvent) {
+    // 返回值表示状态是否真正发生变化
+    @discardableResult
+    func dispatchRoomEvent(_ event: LiveRoomEvent) -> Bool {
         let oldState = roomState
         let nextState = stateMachine.transition(by: event)
+
+        guard oldState != nextState else {
+            print("忽略事件：\(oldState.displayText) -- \(event)")
+            appendSystemMessage("忽略事件：当前状态为\(oldState.displayText)，不能处理该事件")
+            return false
+        }
+
         roomState = nextState
+
         print("状态流转：\(oldState.displayText) -- \(event) --> \(nextState.displayText)")
+
+        handleChatEvent(.roomStateChanged(oldState: oldState, newState: nextState))
         onRoomStateChanged?(nextState)
-       
+
+        return true
     }
 
     // 发送聊天消息

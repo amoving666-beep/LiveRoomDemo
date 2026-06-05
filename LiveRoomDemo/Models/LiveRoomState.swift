@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum LiveRoomState {
+enum LiveRoomState: Equatable {
     case idle
     case entering
     case connecting

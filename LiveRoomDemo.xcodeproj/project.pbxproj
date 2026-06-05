@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B5BDAA52FD314630048CC88 /* ChatEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5BDAA42FD314630048CC88 /* ChatEvent.swift */; };
 		2BAC48C12FCDA806008ADCDD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BAC48B92FCDA806008ADCDD /* Assets.xcassets */; };
 		2BAC48C32FCDA806008ADCDD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BAC48BC2FCDA806008ADCDD /* LaunchScreen.storyboard */; };
 		2BAC48C42FCDA806008ADCDD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BAC48BE2FCDA806008ADCDD /* Main.storyboard */; };
@@ -58,6 +59,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2B5BDAA42FD314630048CC88 /* ChatEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatEvent.swift; sourceTree = "<group>"; };
 		2BAC487B2FCDA51C008ADCDD /* LiveRoomDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveRoomDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BAC48912FCDA51E008ADCDD /* LiveRoomDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LiveRoomDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BAC489B2FCDA51E008ADCDD /* LiveRoomDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LiveRoomDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -209,12 +211,13 @@
 		2BAC48C82FCDA828008ADCDD /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				2BAC48F12FCDABC4008ADCDD /* LiveRoom.swift */,
+				2B5BDAA42FD314630048CC88 /* ChatEvent.swift */,
 				2BAC48F32FCDABCC008ADCDD /* ChatMessage.swift */,
-				2BAC48F52FCDABD4008ADCDD /* LiveStreamState.swift */,
+				2BAC48F12FCDABC4008ADCDD /* LiveRoom.swift */,
 				2BDF54402FCF0645008EB79A /* LiveRoomState.swift */,
 				2BDF54422FCF064F008EB79A /* LiveRoomEvent.swift */,
 				2BDF54442FCF06BC008EB79A /* LiveRoomStateMachine.swift */,
+				2BAC48F52FCDABD4008ADCDD /* LiveStreamState.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -459,6 +462,7 @@
 				2BAC48F82FCDABE2008ADCDD /* Base.swift in Sources */,
 				2BAC48F02FCDABB8008ADCDD /* MockLiveStreamService.swift in Sources */,
 				2BAC48EC2FCDABA9008ADCDD /* MockRoomService.swift in Sources */,
+				2B5BDAA52FD314630048CC88 /* ChatEvent.swift in Sources */,
 				2BAC48D22FCDAB18008ADCDD /* AppRouter.swift in Sources */,
 				2BAC48DE2FCDAB63008ADCDD /* LiveRoomHeaderView.swift in Sources */,
 				2BAC48F42FCDABCC008ADCDD /* ChatMessage.swift in Sources */,

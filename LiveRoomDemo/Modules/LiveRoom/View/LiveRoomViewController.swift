@@ -72,7 +72,7 @@ final class LiveRoomViewController: UIViewController {
 
     private func setupChatTableView() {
         chatTableView.dataSource = self
-        chatTableView.register(UITableViewCell.self, forCellReuseIdentifier: "ChatCell")
+        chatTableView.register(ChatMessageCell.self, forCellReuseIdentifier: ChatMessageCell.reuseIdentifier)
         view.addSubview(chatTableView)
     }
 
@@ -192,10 +192,16 @@ extension LiveRoomViewController: UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ChatCell", for: indexPath)
-        guard let message = viewModel.message(at: indexPath.row) else { return cell }
-        cell.textLabel?.text = "\(message.userName)：\(message.content)"
-        cell.selectionStyle = .none
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: ChatMessageCell.reuseIdentifier,
+            for: indexPath
+        ) as? ChatMessageCell,
+              let message = viewModel.message(at: indexPath.row) else {
+            return UITableViewCell()
+        }
+
+        cell.configure(with: message)
         return cell
     }
+
 }
