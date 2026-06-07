@@ -78,7 +78,7 @@ final class LiveRoomViewController: UIViewController {
 
     private func setupInputView() {
         chatInputView.onSend = { [weak self] text in
-            self?.viewModel.sendMessage(text)
+            self?.viewModel.sendChatText(text)
         }
 
         view.addSubview(chatInputView)
@@ -96,25 +96,25 @@ final class LiveRoomViewController: UIViewController {
     }
 
     private func bindViewModel() {
-        viewModel.onMessagesChanged = { [weak self] in
+        viewModel.onChatMessagesChanged = { [weak self] in
             DispatchQueue.main.async {
                 self?.chatTableView.reloadData()
                 self?.scrollToLatestMessage()
             }
         }
 
-        viewModel.onStreamStateChanged = { [weak self] state in
+        viewModel.onLiveStreamStateChanged = { [weak self] state in
             DispatchQueue.main.async {
                 self?.renderStreamState(state)
             }
         }
 
-        viewModel.onRoomStateChanged = { [weak self] state in
+        viewModel.onLiveRoomStateChanged = { [weak self] state in
             DispatchQueue.main.async {
                 self?.renderRoomState(state)
             }
         }
-        viewModel.onRoomEnded = { [weak self] in
+        viewModel.onLiveRoomEnded = { [weak self] in
             DispatchQueue.main.async {
                 self?.navigationController?.popViewController(animated: true)
             }
@@ -180,15 +180,15 @@ final class LiveRoomViewController: UIViewController {
 
     // 发送新消息后滚动到聊天列表底部
     private func scrollToLatestMessage() {
-        guard !viewModel.messages.isEmpty else { return }
-        let indexPath = IndexPath(row: viewModel.messages.count - 1, section: 0)
+        guard !viewModel.chatMessages.isEmpty else { return }
+        let indexPath = IndexPath(row: viewModel.chatMessages.count - 1, section: 0)
         chatTableView.scrollToRow(at: indexPath, at: .bottom, animated: true)
     }
 }
 
 extension LiveRoomViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.messages.count
+        viewModel.chatMessages.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -196,7 +196,7 @@ extension LiveRoomViewController: UITableViewDataSource {
             withIdentifier: ChatMessageCell.reuseIdentifier,
             for: indexPath
         ) as? ChatMessageCell,
-              let message = viewModel.message(at: indexPath.row) else {
+              let message = viewModel.chatMessage(at: indexPath.row) else {
             return UITableViewCell()
         }
 

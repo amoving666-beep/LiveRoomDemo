@@ -43,9 +43,6 @@ final class ChatMessageCell: UITableViewCell {
         }
     }
 
-    // 根据消息类型生成聊天列表展示文案
-    // 文案和样式都由 Cell 内部处理，VC 不关心消息如何展示
-
     // 根据消息类型设置不同展示样式
     // 用户消息突出内容，系统/进房/离房消息作为弱提示展示
     private func applyStyle(for type: ChatMessageType) {
@@ -71,6 +68,9 @@ final class ChatMessageCell: UITableViewCell {
             messageLabel.font = .systemFont(ofSize: 13)
         }
     }
+
+    // 根据消息类型生成聊天列表展示文案
+    // 文案和样式都由 Cell 内部处理，VC 不关心消息如何展示
     private func displayText(for message: ChatMessage) -> String {
         switch message.type {
         case .user:

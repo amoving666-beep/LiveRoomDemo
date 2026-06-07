@@ -14,15 +14,15 @@ final class LiveRoomViewModel {
     private let chatService: ChatServiceProtocol
     private let liveStreamService: LiveStreamServiceProtocol
     
-    // MARK: - 直播间状态机
+    // MARK: - 状态机
     
     // 状态机负责根据事件计算直播间的下一个生命周期状态
     private let stateMachine = LiveRoomStateMachine()
-
-    // MARK: - 聊天状态
+    
+    // MARK: - 页面状态
     
     // 当前聊天消息列表，属于页面状态
-    private(set) var messages: [ChatMessage] = [
+    private(set) var chatMessages: [ChatMessage] = [
         ChatMessage(
             id: UUID().uuidString,
             type: .system,
@@ -32,25 +32,25 @@ final class LiveRoomViewModel {
         )
     ]
     
-    // MARK: - 播放器状态
-    
     // 当前模拟播放器状态，例如连接中、播放中、失败
     private(set) var streamState: LiveStreamState = .idle
     
-    // MARK: - 房间生命周期状态
-    
     // 当前直播间生命周期状态，例如进入中、连接中、播放中、重连中
     private(set) var roomState: LiveRoomState = .idle
-   
-    // 房间结束后通知 VC 退出直播间页面
-    var onRoomEnded: (() -> Void)?
-    // 聊天消息变化后通知 VC 刷新聊天列表
-    var onMessagesChanged: (() -> Void)?
-    // 播放器状态变化后通知 VC 刷新播放器区域
-    var onStreamStateChanged: ((LiveStreamState) -> Void)?
-    // 房间生命周期状态变化后通知 VC 做整体状态渲染
-    var onRoomStateChanged: ((LiveRoomState) -> Void)?
-
+    
+    // MARK: - 页面回调
+    
+    // 房间结束后通知 VC 退出直播间页面，命名更具业务语义，方便理解回调用途
+    var onLiveRoomEnded: (() -> Void)?
+    // 聊天消息变化后通知 VC 刷新聊天列表，明确是聊天消息相关的更新
+    var onChatMessagesChanged: (() -> Void)?
+    // 播放器状态变化后通知 VC 刷新播放器区域，区分直播流状态变化回调
+    var onLiveStreamStateChanged: ((LiveStreamState) -> Void)?
+    // 房间生命周期状态变化后通知 VC 做整体状态渲染，强调直播间状态变化
+    var onLiveRoomStateChanged: ((LiveRoomState) -> Void)?
+    
+    // MARK: - 初始化
+    
     init(
         chatService: ChatServiceProtocol = MockChatService(),
         liveStreamService: LiveStreamServiceProtocol = MockLiveStreamService()
@@ -58,100 +58,129 @@ final class LiveRoomViewModel {
         self.chatService = chatService
         self.liveStreamService = liveStreamService
     }
-
-    // 用户进入直播间
-    // 当前 Phase2 先模拟：进入房间 -> 房间信息加载完成 -> 准备直播流
+    
+    // MARK: - 房间生命周期
+    
+    // 用户进入直播间，流程模拟进入房间、加载房间信息、准备直播流，保证状态流转顺序合理
     func enterRoom() {
-        dispatchRoomEvent(.enterRoom)
-        appendSystemMessage("欢迎进入直播间，Phase3 开始模拟聊天消息流")
-        appendEnterRoomMessage(userName: "游客001")
-
-        startReceivingMessages()
-
-        dispatchRoomEvent(.roomInfoLoaded)
-        prepareStream()
+        dispatchLiveRoomEvent(.enterRoom)
+        appendSystemChatMessage("欢迎进入直播间，Phase3 开始模拟聊天消息流")
+        appendUserEnterRoomMessage(userName: "游客001")
+        
+        startReceivingChatEvents()
+        
+        dispatchLiveRoomEvent(.roomInfoLoaded)
+        prepareLiveStream()
     }
-
-    // 准备模拟直播流
-    // MockLiveStreamService 会先回调 connecting，再回调 playing
-    func prepareStream() {
+    
+    // 准备模拟直播流，异步回调直播流状态，确保播放器状态和房间状态同步更新
+    func prepareLiveStream() {
         liveStreamService.prepareStream { [weak self] state in
             guard let self else { return }
-
-            self.updateStreamState(state)
-
+            
+            self.updateLiveStreamState(state)
+            
             switch state {
             case .idle:
                 break
-
+                
             case .connecting:
-                self.dispatchRoomEvent(.streamConnecting)
-
+                self.dispatchLiveRoomEvent(.streamConnecting)
+                
             case .playing:
-                self.dispatchRoomEvent(.streamPlaying)
-
+                self.dispatchLiveRoomEvent(.streamPlaying)
+                
             case .reconnecting:
-                self.dispatchRoomEvent(.networkLost)
-
+                self.dispatchLiveRoomEvent(.networkLost)
+                
             case .failed(let message):
-                self.dispatchRoomEvent(.reconnectFailed(message))
+                self.dispatchLiveRoomEvent(.reconnectFailed(message))
             }
         }
     }
-
-    // 更新播放器状态，并通知 VC 刷新播放器区域
-    private func updateStreamState(_ state: LiveStreamState) {
+    
+    // MARK: - 播放器状态
+    
+    // 更新播放器状态，并通知 VC 刷新播放器区域，保持状态和界面同步
+    private func updateLiveStreamState(_ state: LiveStreamState) {
         streamState = state
-        onStreamStateChanged?(state)
+        onLiveStreamStateChanged?(state)
     }
-
-    // 模拟网络断开：playing -> reconnecting
-    // 由用户输入“断线”手动触发
-    private func simulateNetworkLost() {
-        guard dispatchRoomEvent(.networkLost) else { return }
-        updateStreamState(.reconnecting)
+    
+    // MARK: - 调试事件
+    
+    // 模拟网络断开事件，触发状态机事件并更新播放器状态，方便调试网络异常场景
+    private func simulateNetworkLostEvent() {
+        guard dispatchLiveRoomEvent(.networkLost) else { return }
+        updateLiveStreamState(.reconnecting)
     }
-
-    // 模拟失败后重试重连：failed -> reconnecting
-    // 由用户输入“重试”手动触发
-    private func simulateRetryReconnect() {
-        guard dispatchRoomEvent(.retryReconnect) else { return }
-        updateStreamState(.reconnecting)
+    
+    // 模拟重试连接事件，触发状态机事件并更新播放器状态，便于调试重连流程
+    private func simulateRetryReconnectEvent() {
+        guard dispatchLiveRoomEvent(.retryReconnect) else { return }
+        updateLiveStreamState(.reconnecting)
     }
-
-    // 模拟重连成功：reconnecting -> playing
-    // 由用户输入“成功”手动触发
-    private func simulateReconnectSuccess() {
-        guard dispatchRoomEvent(.reconnectSuccess) else { return }
-        updateStreamState(.playing)
+    
+    // 模拟重连成功事件，触发状态机事件并更新播放器状态，测试重连成功后的状态切换
+    private func simulateReconnectSuccessEvent() {
+        guard dispatchLiveRoomEvent(.reconnectSuccess) else { return }
+        updateLiveStreamState(.playing)
     }
-
-    // 模拟播放失败：playing / reconnecting -> failed
-    // 由用户输入“失败”手动触发
-    private func simulateFailure() {
+    
+    // 模拟播放失败事件，触发状态机事件并更新播放器状态，调试播放失败处理逻辑
+    private func simulatePlaybackFailureEvent() {
         let message = "模拟播放失败"
-
-        guard dispatchRoomEvent(.reconnectFailed(message)) else { return }
-
-        updateStreamState(.failed(message))
+        
+        guard dispatchLiveRoomEvent(.reconnectFailed(message)) else { return }
+        
+        updateLiveStreamState(.failed(message))
     }
-
-    // 用户离开直播间：任意状态 -> ended
-    // 由用户输入“结束”手动触发
-    private func leaveRoom() {
-        guard dispatchRoomEvent(.leaveRoom) else { return }
-        appendLeaveRoomMessage(userName: "我")
-        updateStreamState(.idle)
-
+    
+    // 用户离开直播间，触发状态机事件并清理资源，确保页面退出和状态清理一致
+    private func leaveLiveRoom() {
+        guard dispatchLiveRoomEvent(.leaveRoom) else { return }
+        appendUserLeaveRoomMessage(userName: "我")
+        updateLiveStreamState(.idle)
+        
         chatService.stopReceivingMessages()
         liveStreamService.stopStream()
-
-        onRoomEnded?()
+        
+        onLiveRoomEnded?()
     }
 
-    // 追加系统消息
-    // 用于把直播间状态变化、调试提示等事件转换成聊天列表中的消息
-    private func appendSystemMessage(_ content: String) {
+    // 处理直播间调试命令
+    // 这里不是直接设置状态，而是把用户输入转换成直播间事件，再交给状态机判断是否允许流转
+    private func handleLiveRoomDebugCommand(_ text: String) -> Bool {
+        switch text {
+        case "断线":
+            simulateNetworkLostEvent()
+            return true
+
+        case "重试":
+            simulateRetryReconnectEvent()
+            return true
+
+        case "成功":
+            simulateReconnectSuccessEvent()
+            return true
+
+        case "失败":
+            simulatePlaybackFailureEvent()
+            return true
+
+        case "结束":
+            leaveLiveRoom()
+            return true
+
+        default:
+            return false
+        }
+    }
+    
+    // MARK: - 聊天事件流
+    
+    // 追加系统聊天消息，统一系统消息格式，方便后续维护和样式统一
+    private func appendSystemChatMessage(_ content: String) {
         let message = ChatMessage(
             id: UUID().uuidString,
             type: .system,
@@ -159,14 +188,13 @@ final class LiveRoomViewModel {
             content: content,
             timestamp: Date()
         )
-
-        messages.append(message)
-        onMessagesChanged?()
+        
+        chatMessages.append(message)
+        onChatMessagesChanged?()
     }
-
-    // 追加进房消息
-    // 真实项目中通常来自 IM 服务端推送的用户进房事件
-    private func appendEnterRoomMessage(userName: String) {
+    
+    // 追加用户进入房间消息，模拟真实 IM 推送事件，保持聊天列表信息完整
+    private func appendUserEnterRoomMessage(userName: String) {
         let message = ChatMessage(
             id: UUID().uuidString,
             type: .enterRoom,
@@ -174,14 +202,13 @@ final class LiveRoomViewModel {
             content: "",
             timestamp: Date()
         )
-
-        messages.append(message)
-        onMessagesChanged?()
+        
+        chatMessages.append(message)
+        onChatMessagesChanged?()
     }
-
-    // 追加离房消息
-    // 真实项目中通常来自 IM 服务端推送的用户离房事件
-    private func appendLeaveRoomMessage(userName: String) {
+    
+    // 追加用户离开房间消息，模拟真实 IM 推送事件，方便聊天列表状态同步
+    private func appendUserLeaveRoomMessage(userName: String) {
         let message = ChatMessage(
             id: UUID().uuidString,
             type: .leaveRoom,
@@ -189,24 +216,22 @@ final class LiveRoomViewModel {
             content: "",
             timestamp: Date()
         )
-
-        messages.append(message)
-        onMessagesChanged?()
+        
+        chatMessages.append(message)
+        onChatMessagesChanged?()
     }
-
-    // 开始接收模拟聊天消息
-    // 当前由 MockChatService 定时推送，后续可直接替换为 WebSocket 或 IM SDK 回调
-    private func startReceivingMessages() {
+    
+    // 开始接收聊天事件，使用服务层回调，方便后续替换为真实 IM 或 WebSocket 实现
+    private func startReceivingChatEvents() {
         chatService.startReceivingMessages { [weak self] event in
             guard let self else { return }
-
-            self.handleChatEvent(event)
+            
+            self.convertChatEventToMessage(event)
         }
     }
-
-    // 处理聊天事件
-    // ChatService 或房间状态机只负责告诉 ViewModel “发生了什么事件”，ViewModel 再转换成页面可展示的 ChatMessage
-    private func handleChatEvent(_ event: ChatEvent) {
+    
+    // 将聊天事件转换为页面可展示的消息，解耦事件和 UI 表现，方便扩展和维护
+    private func convertChatEventToMessage(_ event: ChatEvent) {
         switch event {
         case let .receiveUserMessage(userName, content):
             let message = ChatMessage(
@@ -216,104 +241,78 @@ final class LiveRoomViewModel {
                 content: content,
                 timestamp: Date()
             )
-
-            messages.append(message)
-            onMessagesChanged?()
-
+            
+            chatMessages.append(message)
+            onChatMessagesChanged?()
+            
         case let .receiveSystemMessage(content):
-            appendSystemMessage(content)
-
+            appendSystemChatMessage(content)
+            
         case let .userEnterRoom(userName):
-            appendEnterRoomMessage(userName: userName)
-
+            appendUserEnterRoomMessage(userName: userName)
+            
         case let .userLeaveRoom(userName):
-            appendLeaveRoomMessage(userName: userName)
-
+            appendUserLeaveRoomMessage(userName: userName)
+            
         case let .roomStateChanged(oldState, newState):
-            appendSystemMessage("状态变化：\(oldState.displayText) -> \(newState.displayText)")
+            appendSystemChatMessage("状态变化：\(oldState.displayText) -> \(newState.displayText)")
         }
     }
-
-    // 输入“断线 / 重试 / 成功 / 失败 / 结束”时，不发送聊天消息，而是模拟外部事件
-    // 同样的提示文案已作为默认系统消息展示在聊天列表第一行
-    // 注意：这里不是直接设置状态，最终能否切换由 LiveRoomStateMachine 决定
-    private func handleDebugCommand(_ text: String) -> Bool {
-        switch text {
-        case "断线":
-            simulateNetworkLost()
-            return true
-
-        case "重试":
-            simulateRetryReconnect()
-            return true
-
-        case "成功":
-            simulateReconnectSuccess()
-            return true
-
-        case "失败":
-            simulateFailure()
-            return true
-
-        case "结束":
-            leaveRoom()
-            return true
-
-        default:
-            return false
-        }
-    }
-
-    // 分发直播间事件
-    // 返回值表示状态是否真正发生变化
+    
+    // MARK: - 直播间事件分发
+    
+    // 分发直播间事件，状态机决定是否状态切换，保证状态流转的正确性和可追踪性
     @discardableResult
-    func dispatchRoomEvent(_ event: LiveRoomEvent) -> Bool {
+    func dispatchLiveRoomEvent(_ event: LiveRoomEvent) -> Bool {
         let oldState = roomState
         let nextState = stateMachine.transition(by: event)
-
+        
         guard oldState != nextState else {
             print("忽略事件：\(oldState.displayText) -- \(event)")
-            appendSystemMessage("忽略事件：当前状态为\(oldState.displayText)，不能处理该事件")
+            appendSystemChatMessage("忽略事件：当前状态为\(oldState.displayText)，不能处理该事件")
             return false
         }
-
+        
         roomState = nextState
-
+        
         print("状态流转：\(oldState.displayText) -- \(event) --> \(nextState.displayText)")
-
-        handleChatEvent(.roomStateChanged(oldState: oldState, newState: nextState))
-        onRoomStateChanged?(nextState)
-
+        
+        convertChatEventToMessage(.roomStateChanged(oldState: oldState, newState: nextState))
+        onLiveRoomStateChanged?(nextState)
+        
         return true
     }
-
-    // 发送聊天消息
-    // 当前通过 ChatServiceProtocol 发送，成功后更新 messages
-    func sendMessage(_ text: String) {
+    
+    // MARK: - 用户发送消息
+    
+    // 发送聊天文本，处理调试命令优先，确保调试命令不会被当作普通消息发送
+    func sendChatText(_ text: String) {
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else { return }
-
-        if handleDebugCommand(trimmedText) {
+        
+        if handleLiveRoomDebugCommand(trimmedText) {
             return
         }
-
+        
         chatService.sendMessage(trimmedText) { [weak self] result in
             guard let self else { return }
-
+            
             switch result {
             case .success(let message):
-                self.messages.append(message)
-                self.onMessagesChanged?()
-
+                self.chatMessages.append(message)
+                self.onChatMessagesChanged?()
+                
             case .failure(let error):
                 print("发送消息失败：\(error.localizedDescription)")
             }
         }
     }
-
-    // 根据下标安全获取聊天消息，避免数组越界
-    func message(at index: Int) -> ChatMessage? {
-        guard messages.indices.contains(index) else { return nil }
-        return messages[index]
+    
+    // MARK: - 对外读取
+    
+    // 根据下标安全获取聊天消息，避免数组越界，保证调用安全
+    func chatMessage(at index: Int) -> ChatMessage? {
+        guard chatMessages.indices.contains(index) else { return nil }
+        return chatMessages[index]
     }
 }
