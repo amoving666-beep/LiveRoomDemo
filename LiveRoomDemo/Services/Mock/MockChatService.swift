@@ -10,6 +10,7 @@ import Foundation
 final class MockChatService: ChatServiceProtocol {
     private var timer: Timer?
     private var mockMessageIndex = 0
+    private var mockEventIndex = 0
 
     private let mockMessages = [
         "主播讲得不错",
@@ -38,15 +39,34 @@ final class MockChatService: ChatServiceProtocol {
 
         timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
             guard let self else { return }
-            let content = self.mockMessages[self.mockMessageIndex % self.mockMessages.count]
-            self.mockMessageIndex += 1
+            let event = self.makeNextMockEvent()
+            onReceive(event)
+        }
+    }
 
-            let event = ChatEvent.receiveUserMessage(
-                userName: "游客\(self.mockMessageIndex)",
+    // 生成下一条模拟聊天事件
+    // Phase3 用于模拟真实 IM 服务端可能推送的不同类型事件
+    private func makeNextMockEvent() -> ChatEvent {
+        let eventType = mockEventIndex % 4
+        mockEventIndex += 1
+        
+        switch eventType {
+        case 0:
+            return .userEnterRoom(userName: "游客\(mockEventIndex)")
+
+        case 1:
+            let content = mockMessages[mockMessageIndex % mockMessages.count]
+            mockMessageIndex += 1
+            return .receiveUserMessage(
+                userName: "游客\(mockEventIndex)",
                 content: content
             )
 
-            onReceive(event)
+        case 2:
+            return .receiveSystemMessage(content: "系统提示：直播间消息流正常")
+
+        default:
+            return .userLeaveRoom(userName: "游客\(mockEventIndex)")
         }
     }
 

@@ -24,6 +24,7 @@ final class ChatMessageCell: UITableViewCell {
 
     func configure(with message: ChatMessage) {
         messageLabel.text = displayText(for: message)
+        applyStyle(for: message.type)
     }
 
     private func setupUI() {
@@ -43,7 +44,33 @@ final class ChatMessageCell: UITableViewCell {
     }
 
     // 根据消息类型生成聊天列表展示文案
-    // Phase3 先只区分文案，后续可以继续扩展不同颜色、对齐方式和气泡样式
+    // 文案和样式都由 Cell 内部处理，VC 不关心消息如何展示
+
+    // 根据消息类型设置不同展示样式
+    // 用户消息突出内容，系统/进房/离房消息作为弱提示展示
+    private func applyStyle(for type: ChatMessageType) {
+        switch type {
+        case .user:
+            messageLabel.textAlignment = .left
+            messageLabel.textColor = .label
+            messageLabel.font = .systemFont(ofSize: 14)
+
+        case .system:
+            messageLabel.textAlignment = .center
+            messageLabel.textColor = .secondaryLabel
+            messageLabel.font = .systemFont(ofSize: 13)
+
+        case .enterRoom:
+            messageLabel.textAlignment = .center
+            messageLabel.textColor = .tertiaryLabel
+            messageLabel.font = .systemFont(ofSize: 13)
+
+        case .leaveRoom:
+            messageLabel.textAlignment = .center
+            messageLabel.textColor = .tertiaryLabel
+            messageLabel.font = .systemFont(ofSize: 13)
+        }
+    }
     private func displayText(for message: ChatMessage) -> String {
         switch message.type {
         case .user:
