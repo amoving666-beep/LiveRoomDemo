@@ -38,8 +38,11 @@ final class LiveRoomStateMachine {
      reconnecting   reconnectFailed         failed          重连失败
      reconnecting   reconnectTimeout        failed          重连超时
      reconnecting   anchorEnded             ended           重连期间主播下播
+     reconnecting   roomClosed              ended           重连期间房间关闭
+     reconnecting   kickedOut               ended           重连期间被踢出房间
 
      failed         retryReconnect          reconnecting    失败后用户手动重试重连
+     failed         reconnectFailed         failed          失败状态下更新失败原因
      failed         leaveRoom               ended           离开房间
 
      ended          任意事件                 ended           终态，不再恢复
@@ -62,6 +65,10 @@ final class LiveRoomStateMachine {
         case (.entering, .roomInfoLoaded):
             return .connecting
 
+        // 房间信息加载失败：entering -> failed
+        case (.entering, .roomInfoLoadFailed(let message)):
+            return .failed(message)
+
         // 直播流开始连接：connecting -> connecting
         // 当前状态不变，但保留事件语义，方便后续扩展加载 UI
         case (.connecting, .streamConnecting):
@@ -71,9 +78,29 @@ final class LiveRoomStateMachine {
         case (.connecting, .streamPlaying):
             return .playing
 
+        // 首次拉流失败：connecting -> failed
+        case (.connecting, .streamFailed(let message)):
+            return .failed(message)
+
         // 播放过程中网络中断：playing -> reconnecting
         case (.playing, .networkLost):
             return .reconnecting
+
+        // 播放流中断：playing -> reconnecting
+        case (.playing, .streamInterrupted):
+            return .reconnecting
+
+        // 主播下播：playing -> ended
+        case (.playing, .anchorEnded):
+            return .ended
+
+        // 房间被关闭：playing -> ended
+        case (.playing, .roomClosed):
+            return .ended
+
+        // 当前用户被踢出房间：playing -> ended
+        case (.playing, .kickedOut):
+            return .ended
 
         // 播放中直接失败：playing -> failed
         case (.playing, .reconnectFailed(let message)):
@@ -87,9 +114,30 @@ final class LiveRoomStateMachine {
         case (.reconnecting, .reconnectFailed(let message)):
             return .failed(message)
 
+        // 重连超时：reconnecting -> failed
+        case (.reconnecting, .reconnectTimeout):
+            return .failed("重连超时")
+
+        // 重连期间主播下播：reconnecting -> ended
+        case (.reconnecting, .anchorEnded):
+            return .ended
+
+        // 重连期间房间被关闭：reconnecting -> ended
+        case (.reconnecting, .roomClosed):
+            return .ended
+
+        // 重连期间当前用户被踢出房间：reconnecting -> ended
+        case (.reconnecting, .kickedOut):
+            return .ended
+
         // 失败后用户手动重试重连：failed -> reconnecting
         case (.failed, .retryReconnect):
             return .reconnecting
+
+        // 失败状态下再次收到失败事件：failed -> failed
+        // 这里允许更新失败原因，例如“重连次数已达上限”
+        case (.failed, .reconnectFailed(let message)):
+            return .failed(message)
 
         // 直播间已结束后，任何事件都不能恢复状态
         case (.ended, _):

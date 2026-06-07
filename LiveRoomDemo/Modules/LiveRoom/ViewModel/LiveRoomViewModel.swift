@@ -18,6 +18,9 @@ final class LiveRoomViewModel {
     
     // 状态机负责根据事件计算直播间的下一个生命周期状态
     private let stateMachine = LiveRoomStateMachine()
+
+    // 重连管理器负责控制重连次数和重连间隔，避免弱网场景下无限重试
+    private let reconnectManager = ReconnectManager()
     
     // MARK: - 页面状态
     
@@ -27,7 +30,7 @@ final class LiveRoomViewModel {
             id: UUID().uuidString,
             type: .system,
             userName: "系统",
-            content: "输入“断线 / 重试 / 成功 / 失败 / 结束”时，可以模拟直播间事件",
+            content: "输入“断线 / 断流”可自动重连；失败后输入“重试”可手动重连；输入“失败 / 超时 / 下播 / 关闭 / 踢出 / 结束”可模拟异常事件",
             timestamp: Date()
         )
     ]
@@ -73,6 +76,19 @@ final class LiveRoomViewModel {
         prepareLiveStream()
     }
     
+    // 停止直播间生命周期
+    // Feed cell 离开屏幕或复用时调用，避免消息 timer / 重连 timer 在不可见 cell 中继续回调
+    func stopLiveRoomLifecycle() {
+        chatService.stopReceivingMessages()
+        liveStreamService.stopStream()
+        reconnectManager.reset()
+
+        onChatMessagesChanged = nil
+        onLiveStreamStateChanged = nil
+        onLiveRoomStateChanged = nil
+        onLiveRoomEnded = nil
+    }
+    
     // 准备模拟直播流，异步回调直播流状态，确保播放器状态和房间状态同步更新
     func prepareLiveStream() {
         liveStreamService.prepareStream { [weak self] state in
@@ -109,31 +125,95 @@ final class LiveRoomViewModel {
     
     // MARK: - 调试事件
     
-    // 模拟网络断开事件，触发状态机事件并更新播放器状态，方便调试网络异常场景
+    // 模拟网络断开事件，触发状态机进入重连中，并交给 ReconnectManager 自动安排重连尝试
     private func simulateNetworkLostEvent() {
         guard dispatchLiveRoomEvent(.networkLost) else { return }
         updateLiveStreamState(.reconnecting)
+        startAutomaticReconnect(reason: "网络断开")
     }
     
-    // 模拟重试连接事件，触发状态机事件并更新播放器状态，便于调试重连流程
+    // 模拟直播流中断事件，例如播放器 SDK 回调断流
+    private func simulateStreamInterruptedEvent() {
+        guard dispatchLiveRoomEvent(.streamInterrupted) else { return }
+        updateLiveStreamState(.reconnecting)
+        startAutomaticReconnect(reason: "直播流中断")
+    }
+    
+    // 开始自动重连流程
+    // 输入“断线 / 断流”后会进入 reconnecting，随后由 ReconnectManager 延迟触发自动重连成功
+    private func startAutomaticReconnect(reason: String) {
+        reconnectManager.startReconnect { [weak self] retryCount in
+            guard let self else { return }
+            self.appendSystemChatMessage("\(reason)，自动发起第 \(retryCount) 次重连")
+            self.simulateReconnectSuccessEvent()
+        } onReachLimit: { [weak self] in
+            self?.simulatePlaybackFailureEvent(message: "重连次数已达上限")
+        }
+    }
+    
+    // 模拟失败后的手动重试连接事件
+    // 用户输入“重试”后，从 failed 进入 reconnecting，再交给 ReconnectManager 自动完成一次重连尝试
     private func simulateRetryReconnectEvent() {
         guard dispatchLiveRoomEvent(.retryReconnect) else { return }
         updateLiveStreamState(.reconnecting)
+        startAutomaticReconnect(reason: "用户手动重试")
     }
     
     // 模拟重连成功事件，触发状态机事件并更新播放器状态，测试重连成功后的状态切换
     private func simulateReconnectSuccessEvent() {
         guard dispatchLiveRoomEvent(.reconnectSuccess) else { return }
+        reconnectManager.reset()
         updateLiveStreamState(.playing)
+        appendSystemChatMessage("重连成功，重连次数已重置")
     }
     
     // 模拟播放失败事件，触发状态机事件并更新播放器状态，调试播放失败处理逻辑
-    private func simulatePlaybackFailureEvent() {
-        let message = "模拟播放失败"
-        
+    private func simulatePlaybackFailureEvent(message: String = "模拟播放失败") {
+        reconnectManager.cancelReconnect()
         guard dispatchLiveRoomEvent(.reconnectFailed(message)) else { return }
-        
         updateLiveStreamState(.failed(message))
+    }
+    
+    // 模拟首次拉流失败：connecting -> failed
+    private func simulateStreamFailedEvent() {
+        simulatePlaybackFailureEvent(message: "模拟拉流失败")
+    }
+
+    // 模拟重连超时：reconnecting -> failed
+    private func simulateReconnectTimeoutEvent() {
+        guard dispatchLiveRoomEvent(.reconnectTimeout) else { return }
+        updateLiveStreamState(.failed("重连超时"))
+    }
+
+    // 模拟主播下播：playing / reconnecting -> ended
+    private func simulateAnchorEndedEvent() {
+        guard dispatchLiveRoomEvent(.anchorEnded) else { return }
+        finishLiveRoomAfterExternalEndEvent(message: "主播已下播")
+    }
+
+    // 模拟房间关闭：playing / reconnecting -> ended
+    private func simulateRoomClosedEvent() {
+        guard dispatchLiveRoomEvent(.roomClosed) else { return }
+        finishLiveRoomAfterExternalEndEvent(message: "房间已关闭")
+    }
+
+    // 模拟用户被踢出：playing / reconnecting -> ended
+    private func simulateKickedOutEvent() {
+        guard dispatchLiveRoomEvent(.kickedOut) else { return }
+        finishLiveRoomAfterExternalEndEvent(message: "你已被踢出直播间")
+    }
+
+    // 外部事件导致直播间结束后的统一清理逻辑
+    // 例如主播下播、房间关闭、用户被踢出，都需要停止聊天流和直播流
+    private func finishLiveRoomAfterExternalEndEvent(message: String) {
+        appendSystemChatMessage(message)
+        updateLiveStreamState(.idle)
+        reconnectManager.reset()
+
+        chatService.stopReceivingMessages()
+        liveStreamService.stopStream()
+
+        onLiveRoomEnded?()
     }
     
     // 用户离开直播间，触发状态机事件并清理资源，确保页面退出和状态清理一致
@@ -141,6 +221,7 @@ final class LiveRoomViewModel {
         guard dispatchLiveRoomEvent(.leaveRoom) else { return }
         appendUserLeaveRoomMessage(userName: "我")
         updateLiveStreamState(.idle)
+        reconnectManager.reset()
         
         chatService.stopReceivingMessages()
         liveStreamService.stopStream()
@@ -150,10 +231,15 @@ final class LiveRoomViewModel {
 
     // 处理直播间调试命令
     // 这里不是直接设置状态，而是把用户输入转换成直播间事件，再交给状态机判断是否允许流转
+    // 这些命令只是当前 Demo 的测试入口，未来可以替换成真实 IM / 播放器 / 网络回调
     private func handleLiveRoomDebugCommand(_ text: String) -> Bool {
         switch text {
         case "断线":
             simulateNetworkLostEvent()
+            return true
+
+        case "断流":
+            simulateStreamInterruptedEvent()
             return true
 
         case "重试":
@@ -166,6 +252,26 @@ final class LiveRoomViewModel {
 
         case "失败":
             simulatePlaybackFailureEvent()
+            return true
+
+        case "拉流失败":
+            simulateStreamFailedEvent()
+            return true
+
+        case "超时":
+            simulateReconnectTimeoutEvent()
+            return true
+
+        case "下播":
+            simulateAnchorEndedEvent()
+            return true
+
+        case "关闭":
+            simulateRoomClosedEvent()
+            return true
+
+        case "踢出":
+            simulateKickedOutEvent()
             return true
 
         case "结束":

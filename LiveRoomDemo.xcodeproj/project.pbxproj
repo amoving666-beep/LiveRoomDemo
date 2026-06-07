@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B11EEA42FD53EB800F214DB /* ReconnectManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B11EEA32FD53EB700F214DB /* ReconnectManager.swift */; };
+		2B11EEA72FD5720600F214DB /* LiveRoomContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B11EEA62FD5720600F214DB /* LiveRoomContentView.swift */; };
+		2B11EEA92FD5780500F214DB /* LiveRoomFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B11EEA82FD5780500F214DB /* LiveRoomFeedViewController.swift */; };
+		2B11EEAB2FD57E9E00F214DB /* LiveRoomPageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B11EEAA2FD57E9E00F214DB /* LiveRoomPageCell.swift */; };
 		2B5BDAA52FD314630048CC88 /* ChatEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5BDAA42FD314630048CC88 /* ChatEvent.swift */; };
 		2BAC48C12FCDA806008ADCDD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BAC48B92FCDA806008ADCDD /* Assets.xcassets */; };
 		2BAC48C32FCDA806008ADCDD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BAC48BC2FCDA806008ADCDD /* LaunchScreen.storyboard */; };
@@ -59,6 +63,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2B11EEA32FD53EB700F214DB /* ReconnectManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconnectManager.swift; sourceTree = "<group>"; };
+		2B11EEA62FD5720600F214DB /* LiveRoomContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomContentView.swift; sourceTree = "<group>"; };
+		2B11EEA82FD5780500F214DB /* LiveRoomFeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomFeedViewController.swift; sourceTree = "<group>"; };
+		2B11EEAA2FD57E9E00F214DB /* LiveRoomPageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomPageCell.swift; sourceTree = "<group>"; };
 		2B5BDAA42FD314630048CC88 /* ChatEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatEvent.swift; sourceTree = "<group>"; };
 		2BAC487B2FCDA51C008ADCDD /* LiveRoomDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiveRoomDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BAC48912FCDA51E008ADCDD /* LiveRoomDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LiveRoomDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -135,6 +143,56 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2B11EEA22FD53EAB00F214DB /* Reconnect */ = {
+			isa = PBXGroup;
+			children = (
+				2B11EEA32FD53EB700F214DB /* ReconnectManager.swift */,
+			);
+			path = Reconnect;
+			sourceTree = "<group>";
+		};
+		2B11EEA52FD5716F00F214DB /* VC */ = {
+			isa = PBXGroup;
+			children = (
+				2BAC48D92FCDAB50008ADCDD /* LiveRoomViewController.swift */,
+			);
+			path = VC;
+			sourceTree = "<group>";
+		};
+		2B11EEAC2FD57EBA00F214DB /* LiveRoomFeed */ = {
+			isa = PBXGroup;
+			children = (
+				2B11EEAF2FD59F4100F214DB /* View */,
+				2B11EEAD2FD57EEC00F214DB /* VC */,
+				2B11EEAE2FD57EF400F214DB /* Cell */,
+			);
+			path = LiveRoomFeed;
+			sourceTree = "<group>";
+		};
+		2B11EEAD2FD57EEC00F214DB /* VC */ = {
+			isa = PBXGroup;
+			children = (
+				2B11EEA82FD5780500F214DB /* LiveRoomFeedViewController.swift */,
+			);
+			path = VC;
+			sourceTree = "<group>";
+		};
+		2B11EEAE2FD57EF400F214DB /* Cell */ = {
+			isa = PBXGroup;
+			children = (
+				2B11EEAA2FD57E9E00F214DB /* LiveRoomPageCell.swift */,
+			);
+			path = Cell;
+			sourceTree = "<group>";
+		};
+		2B11EEAF2FD59F4100F214DB /* View */ = {
+			isa = PBXGroup;
+			children = (
+				2B11EEA62FD5720600F214DB /* LiveRoomContentView.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		2BAC48722FCDA51C008ADCDD = {
 			isa = PBXGroup;
 			children = (
@@ -158,6 +216,7 @@
 		2BAC48B52FCDA806008ADCDD /* LiveRoom */ = {
 			isa = PBXGroup;
 			children = (
+				2B11EEA52FD5716F00F214DB /* VC */,
 				2BAC48CC2FCDAAAA008ADCDD /* View */,
 				2BAC48CD2FCDAAB3008ADCDD /* ViewModel */,
 			);
@@ -167,6 +226,7 @@
 		2BAC48B62FCDA806008ADCDD /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				2B11EEA22FD53EAB00F214DB /* Reconnect */,
 				2BAC48CE2FCDAACC008ADCDD /* Protocols */,
 				2BAC48CF2FCDAAD5008ADCDD /* Mock */,
 			);
@@ -178,6 +238,7 @@
 			children = (
 				2BAC48C92FCDA89A008ADCDD /* RoomList */,
 				2BAC48B52FCDA806008ADCDD /* LiveRoom */,
+				2B11EEAC2FD57EBA00F214DB /* LiveRoomFeed */,
 			);
 			path = Modules;
 			sourceTree = "<group>";
@@ -225,19 +286,19 @@
 		2BAC48C92FCDA89A008ADCDD /* RoomList */ = {
 			isa = PBXGroup;
 			children = (
-				2BAC48CA2FCDAA67008ADCDD /* View */,
+				2BAC48CA2FCDAA67008ADCDD /* VC */,
 				2BAC48C72FCDA80F008ADCDD /* ViewModel */,
 				2BAC48CB2FCDAA6E008ADCDD /* Cell */,
 			);
 			path = RoomList;
 			sourceTree = "<group>";
 		};
-		2BAC48CA2FCDAA67008ADCDD /* View */ = {
+		2BAC48CA2FCDAA67008ADCDD /* VC */ = {
 			isa = PBXGroup;
 			children = (
 				2BAC48D32FCDAB29008ADCDD /* RoomListViewController.swift */,
 			);
-			path = View;
+			path = VC;
 			sourceTree = "<group>";
 		};
 		2BAC48CB2FCDAA6E008ADCDD /* Cell */ = {
@@ -251,7 +312,6 @@
 		2BAC48CC2FCDAAAA008ADCDD /* View */ = {
 			isa = PBXGroup;
 			children = (
-				2BAC48D92FCDAB50008ADCDD /* LiveRoomViewController.swift */,
 				2BAC48DB2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift */,
 				2BAC48DD2FCDAB62008ADCDD /* LiveRoomHeaderView.swift */,
 				2BAC48DF2FCDAB6D008ADCDD /* ChatInputView.swift */,
@@ -454,8 +514,10 @@
 				2BAC48E02FCDAB6D008ADCDD /* ChatInputView.swift in Sources */,
 				2BAC48C62FCDA806008ADCDD /* SceneDelegate.swift in Sources */,
 				2BAC48EA2FCDAB9E008ADCDD /* LiveStreamServiceProtocol.swift in Sources */,
+				2B11EEA92FD5780500F214DB /* LiveRoomFeedViewController.swift in Sources */,
 				2BAC48E42FCDAB82008ADCDD /* LiveRoomViewModel.swift in Sources */,
 				2BAC48EE2FCDABB1008ADCDD /* MockChatService.swift in Sources */,
+				2B11EEA42FD53EB800F214DB /* ReconnectManager.swift in Sources */,
 				2BAC48D62FCDAB36008ADCDD /* RoomListViewModel.swift in Sources */,
 				2BDF54432FCF064F008EB79A /* LiveRoomEvent.swift in Sources */,
 				2BAC48E62FCDAB8D008ADCDD /* RoomServiceProtocol.swift in Sources */,
@@ -471,9 +533,11 @@
 				2BDF54452FCF06BC008EB79A /* LiveRoomStateMachine.swift in Sources */,
 				2BAC48E22FCDAB76008ADCDD /* ChatMessageCell.swift in Sources */,
 				2BAC48DC2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift in Sources */,
+				2B11EEAB2FD57E9E00F214DB /* LiveRoomPageCell.swift in Sources */,
 				2BAC48DA2FCDAB50008ADCDD /* LiveRoomViewController.swift in Sources */,
 				2BAC48D42FCDAB29008ADCDD /* RoomListViewController.swift in Sources */,
 				2BAC48F22FCDABC4008ADCDD /* LiveRoom.swift in Sources */,
+				2B11EEA72FD5720600F214DB /* LiveRoomContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
