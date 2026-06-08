@@ -65,11 +65,10 @@ final class LiveRoomViewModel {
     // MARK: - 房间生命周期
     
     // 用户进入直播间，流程模拟进入房间、加载房间信息、准备直播流，保证状态流转顺序合理
+    // 进房消息由 ChatService 模拟服务端推送，ViewModel 不再主动插入，避免和服务端事件重复
     func enterRoom() {
         dispatchLiveRoomEvent(.enterRoom)
-        appendSystemChatMessage("欢迎进入直播间，Phase3 开始模拟聊天消息流")
-        appendUserEnterRoomMessage(userName: "游客001")
-        
+
         startReceivingChatEvents()
         
         dispatchLiveRoomEvent(.roomInfoLoaded)
@@ -101,8 +100,8 @@ final class LiveRoomViewModel {
                 break
                 
             case .connecting:
-                self.dispatchLiveRoomEvent(.streamConnecting)
-                
+//                self.dispatchLiveRoomEvent(.streamConnecting)
+                break
             case .playing:
                 self.dispatchLiveRoomEvent(.streamPlaying)
                 
@@ -144,8 +143,8 @@ final class LiveRoomViewModel {
     private func startAutomaticReconnect(reason: String) {
         reconnectManager.startReconnect { [weak self] retryCount in
             guard let self else { return }
-            self.appendSystemChatMessage("\(reason)，自动发起第 \(retryCount) 次重连")
-            self.simulateReconnectSuccessEvent()
+            // 自动重连属于状态日志，不进入聊天列表，避免消息区被系统提示刷屏
+            print("\(reason)，自动发起第 \(retryCount) 次重连")
         } onReachLimit: { [weak self] in
             self?.simulatePlaybackFailureEvent(message: "重连次数已达上限")
         }
@@ -164,7 +163,8 @@ final class LiveRoomViewModel {
         guard dispatchLiveRoomEvent(.reconnectSuccess) else { return }
         reconnectManager.reset()
         updateLiveStreamState(.playing)
-        appendSystemChatMessage("重连成功，重连次数已重置")
+        // 重连结果交给播放器状态和房间状态展示，不塞进聊天列表
+        print("重连成功，重连次数已重置")
     }
     
     // 模拟播放失败事件，触发状态机事件并更新播放器状态，调试播放失败处理逻辑
@@ -206,7 +206,8 @@ final class LiveRoomViewModel {
     // 外部事件导致直播间结束后的统一清理逻辑
     // 例如主播下播、房间关闭、用户被踢出，都需要停止聊天流和直播流
     private func finishLiveRoomAfterExternalEndEvent(message: String) {
-        appendSystemChatMessage(message)
+        // 外部结束原因属于房间生命周期日志，当前先输出到控制台，不进入聊天列表
+        print(message)
         updateLiveStreamState(.idle)
         reconnectManager.reset()
 
@@ -285,7 +286,8 @@ final class LiveRoomViewModel {
     
     // MARK: - 聊天事件流
     
-    // 追加系统聊天消息，统一系统消息格式，方便后续维护和样式统一
+    // 追加真正需要展示在聊天区的系统消息
+    // 注意：状态变化、忽略事件、重连日志不要走这里，否则 Feed 场景下每个房间都会刷大量系统消息
     private func appendSystemChatMessage(_ content: String) {
         let message = ChatMessage(
             id: UUID().uuidString,
@@ -352,7 +354,8 @@ final class LiveRoomViewModel {
             onChatMessagesChanged?()
             
         case let .receiveSystemMessage(content):
-            appendSystemChatMessage(content)
+            // 服务端系统事件先只打日志，不进入聊天列表，避免系统消息影响真实聊天内容
+            print("收到系统事件：\(content)")
             
         case let .userEnterRoom(userName):
             appendUserEnterRoomMessage(userName: userName)
@@ -361,7 +364,8 @@ final class LiveRoomViewModel {
             appendUserLeaveRoomMessage(userName: userName)
             
         case let .roomStateChanged(oldState, newState):
-            appendSystemChatMessage("状态变化：\(oldState.displayText) -> \(newState.displayText)")
+            // 房间状态变化由 roomStateLabel 和控制台承接，不作为聊天消息展示
+            print("房间状态变化：\(oldState.displayText) -> \(newState.displayText)")
         }
     }
     
@@ -374,8 +378,8 @@ final class LiveRoomViewModel {
         let nextState = stateMachine.transition(by: event)
         
         guard oldState != nextState else {
+            // 非法事件只作为调试日志输出，不进入聊天列表
             print("忽略事件：\(oldState.displayText) -- \(event)")
-            appendSystemChatMessage("忽略事件：当前状态为\(oldState.displayText)，不能处理该事件")
             return false
         }
         
@@ -383,7 +387,7 @@ final class LiveRoomViewModel {
         
         print("状态流转：\(oldState.displayText) -- \(event) --> \(nextState.displayText)")
         
-        convertChatEventToMessage(.roomStateChanged(oldState: oldState, newState: nextState))
+        // 状态变化只驱动状态 UI，不再写入聊天列表
         onLiveRoomStateChanged?(nextState)
         
         return true

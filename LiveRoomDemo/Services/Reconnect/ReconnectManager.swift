@@ -11,7 +11,7 @@ final class ReconnectManager {
     private let maxRetryCount: Int
     private let retryInterval: TimeInterval
 
-    private var reconnectTimer: Timer?
+    private var reconnectWorkItem: DispatchWorkItem?
 
     private(set) var currentRetryCount = 0
 
@@ -39,7 +39,7 @@ final class ReconnectManager {
     }
 
     // 开始一次自动重连
-    // 如果已经超过最大重试次数，直接回调失败；否则等待固定间隔后触发重连动作
+    // 如果已经超过最大重试次数，直接回调失败；否则用 DispatchWorkItem 延迟触发重连动作
     func startReconnect(onRetry: @escaping (Int) -> Void, onReachLimit: @escaping () -> Void) {
         cancelReconnect()
 
@@ -51,17 +51,20 @@ final class ReconnectManager {
         recordRetry()
         let retryCount = currentRetryCount
 
-        reconnectTimer = Timer.scheduledTimer(withTimeInterval: retryInterval, repeats: false) { [weak self] _ in
-            self?.reconnectTimer = nil
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.reconnectWorkItem = nil
             onRetry(retryCount)
         }
+
+        reconnectWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + retryInterval, execute: workItem)
     }
 
-    // 取消当前等待中的自动重连
+    // 取消当前等待中的自动重连任务
     // 用户离开房间、重连成功或进入终态时都应该取消，避免离开页面后继续回调
     func cancelReconnect() {
-        reconnectTimer?.invalidate()
-        reconnectTimer = nil
+        reconnectWorkItem?.cancel()
+        reconnectWorkItem = nil
     }
 
     // 重连成功或离开房间后重置

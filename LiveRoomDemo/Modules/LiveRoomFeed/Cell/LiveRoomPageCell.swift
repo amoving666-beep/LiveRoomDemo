@@ -35,9 +35,10 @@ final class LiveRoomPageCell: UICollectionViewCell {
 
     // 当前 cell 进入可见区域时启动直播间
     // 每个 LiveRoomPageCell 都有自己的 ViewModel，避免多个房间共用状态
-    func startLiveRoom() {
-        guard liveRoomViewModel == nil else { return }
-        guard let liveRoom else { return }
+    @discardableResult
+    func startLiveRoom() -> Bool {
+        guard liveRoomViewModel == nil else { return false }
+        guard let liveRoom else { return false }
 
         let liveRoomViewModel = LiveRoomViewModel()
         self.liveRoomViewModel = liveRoomViewModel
@@ -51,16 +52,27 @@ final class LiveRoomPageCell: UICollectionViewCell {
 
         bind(liveRoomViewModel)
         liveRoomViewModel.enterRoom()
+
+        return true
     }
 
     // 当前 cell 离开可见区域时停止直播间
     // 真实项目中这里会释放播放器、停止 IM 消息、取消重连任务
-    func stopLiveRoom() {
+    @discardableResult
+    func stopLiveRoom() -> Bool {
+        guard liveRoomViewModel != nil else { return false }
+
         liveRoomViewModel?.stopLiveRoomLifecycle()
+        liveRoomViewModel = nil
+
         liveRoomContentView.onSendChatText = nil
         liveRoomContentView.chatMessageTableView.dataSource = nil
         liveRoomContentView.chatMessageTableView.reloadData()
-        liveRoomViewModel = nil
+
+        liveRoomContentView.renderStreamState(.idle)
+        liveRoomContentView.renderRoomState(.idle)
+
+        return true
     }
 
     private func bind(_ liveRoomViewModel: LiveRoomViewModel) {

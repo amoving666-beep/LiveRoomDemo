@@ -65,6 +65,7 @@ final class LiveRoomFeedViewController: UIViewController {
         liveRoomCollectionView.backgroundColor = .systemBackground
         liveRoomCollectionView.dataSource = self
         liveRoomCollectionView.delegate = self
+        liveRoomCollectionView.prefetchDataSource = self
         liveRoomCollectionView.register(
             LiveRoomPageCell.self,
             forCellWithReuseIdentifier: LiveRoomPageCell.reuseIdentifier
@@ -117,8 +118,9 @@ final class LiveRoomFeedViewController: UIViewController {
             return
         }
 
-        cell.startLiveRoom()
-        print("开始房间：\(liveRooms[index].title)")
+        if cell.startLiveRoom() {
+            print("开始房间：\(liveRooms[index].title)")
+        }
     }
 
     // 停止指定下标对应的直播间 cell
@@ -130,8 +132,9 @@ final class LiveRoomFeedViewController: UIViewController {
             return
         }
 
-        cell.stopLiveRoom()
-        print("停止房间：\(liveRooms[index].title)")
+        if cell.stopLiveRoom() {
+            print("停止房间：\(liveRooms[index].title)")
+        }
     }
 }
 
@@ -167,15 +170,17 @@ extension LiveRoomFeedViewController: UICollectionViewDelegateFlowLayout {
         guard let liveRoomPageCell = cell as? LiveRoomPageCell else { return }
         guard indexPath.item == currentRoomIndex else { return }
 
-        liveRoomPageCell.startLiveRoom()
-        print("开始房间：\(liveRooms[indexPath.item].title)")
+        if liveRoomPageCell.startLiveRoom() {
+            print("开始房间：\(liveRooms[indexPath.item].title)")
+        }
     }
 
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         guard let liveRoomPageCell = cell as? LiveRoomPageCell else { return }
 
-        liveRoomPageCell.stopLiveRoom()
-        print("停止房间：\(liveRooms[indexPath.item].title)")
+        if liveRoomPageCell.stopLiveRoom() {
+            print("停止房间：\(liveRooms[indexPath.item].title)")
+        }
     }
 }
 
@@ -187,6 +192,29 @@ extension LiveRoomFeedViewController: UIScrollViewDelegate {
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             updateCurrentRoomIfNeeded()
+        }
+    }
+}
+
+
+extension LiveRoomFeedViewController: UICollectionViewDataSourcePrefetching {
+    // Feed 预加载入口
+    // 当前只打印预加载时机，后续可以在这里提前准备下一个房间的数据或播放器资源
+    func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
+        for indexPath in indexPaths {
+            guard liveRooms.indices.contains(indexPath.item) else { continue }
+            let room = liveRooms[indexPath.item]
+            print("预加载房间入口：\(room.title)")
+        }
+    }
+
+    // 取消预加载入口
+    // 用户快速反向滑动时，系统可能取消之前准备中的房间资源
+    func collectionView(_ collectionView: UICollectionView, cancelPrefetchingForItemsAt indexPaths: [IndexPath]) {
+        for indexPath in indexPaths {
+            guard liveRooms.indices.contains(indexPath.item) else { continue }
+            let room = liveRooms[indexPath.item]
+            print("取消预加载房间：\(room.title)")
         }
     }
 }

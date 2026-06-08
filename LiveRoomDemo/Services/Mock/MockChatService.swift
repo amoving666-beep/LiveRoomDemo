@@ -37,7 +37,7 @@ final class MockChatService: ChatServiceProtocol {
     func startReceivingMessages(onReceive: @escaping (ChatEvent) -> Void) {
         stopReceivingMessages()
 
-        timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self else { return }
             let event = self.makeNextMockEvent()
             onReceive(event)
@@ -46,8 +46,9 @@ final class MockChatService: ChatServiceProtocol {
 
     // 生成下一条模拟聊天事件
     // Phase3 用于模拟真实 IM 服务端可能推送的不同类型事件
+    // 当前只模拟：进房、普通聊天、离房，避免系统消息刷屏
     private func makeNextMockEvent() -> ChatEvent {
-        let eventType = mockEventIndex % 4
+        let eventType = mockEventIndex % 3
         mockEventIndex += 1
         
         switch eventType {
@@ -61,10 +62,8 @@ final class MockChatService: ChatServiceProtocol {
                 userName: "游客\(mockEventIndex)",
                 content: content
             )
-
-        case 2:
-            return .receiveSystemMessage(content: "系统提示：直播间消息流正常")
-
+//        case 2:
+//            return .receiveSystemMessage(content: "系统提示：直播间消息流正常")
         default:
             return .userLeaveRoom(userName: "游客\(mockEventIndex)")
         }
