@@ -26,6 +26,14 @@ final class LiveRoomHeaderView: UIView {
         viewerCountLabel.text = "在线：\(room.viewerCount)"
     }
 
+    /// 更新在线人数。
+    ///
+    /// 在线人数属于直播间持续变化数据，
+    /// 不需要重新 configure 整个 Header，只刷新人数标签。
+    func updateOnlineCount(_ count: Int) {
+        viewerCountLabel.text = "在线：\(count)"
+    }
+
     private func setupUI() {
         backgroundColor = .secondarySystemBackground
 

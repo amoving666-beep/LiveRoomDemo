@@ -66,6 +66,11 @@ final class ChatMessageCell: UITableViewCell {
             messageLabel.textAlignment = .center
             messageLabel.textColor = .tertiaryLabel
             messageLabel.font = .systemFont(ofSize: 13)
+            
+        case .gift:
+            messageLabel.textAlignment = .center
+            messageLabel.textColor = .systemOrange
+            messageLabel.font = .systemFont(ofSize: 13)
         }
     }
 
@@ -84,6 +89,8 @@ final class ChatMessageCell: UITableViewCell {
 
         case .leaveRoom:
             return "\(message.userName) 离开了直播间"
+        case .gift:
+            return "\(message.userName)：\(message.content)"
         }
     }
 }

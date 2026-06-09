@@ -11,6 +11,7 @@ final class LiveRoomPageCell: UICollectionViewCell {
     static let reuseIdentifier = "LiveRoomPageCell"
 
     private let liveRoomContentView = LiveRoomContentView()
+    private let giftQueueManager = GiftQueueManager()
     private var liveRoom: LiveRoom?
     private var liveRoomViewModel: LiveRoomViewModel?
 
@@ -59,7 +60,7 @@ final class LiveRoomPageCell: UICollectionViewCell {
 
         // 当前阶段仍由 Cell 创建 ViewModel。
         // 后续会改成 Feed 预创建后通过 bindLiveRoomViewModel 注入。
-        let liveRoomViewModel = LiveRoomViewModel()
+        let liveRoomViewModel = LiveRoomViewModel(liveRoom: liveRoom)
         bindLiveRoomViewModel(liveRoomViewModel)
 
         liveRoomContentView.configure(room: liveRoom)
@@ -82,6 +83,7 @@ final class LiveRoomPageCell: UICollectionViewCell {
         liveRoomContentView.chatMessageTableView.dataSource = nil
         liveRoomContentView.chatMessageTableView.reloadData()
 
+        giftQueueManager.reset()
         liveRoomContentView.renderStreamState(.idle)
         liveRoomContentView.renderRoomState(.idle)
 
@@ -115,6 +117,24 @@ final class LiveRoomPageCell: UICollectionViewCell {
             DispatchQueue.main.async {
                 self?.stopLiveRoom()
             }
+        }
+
+        liveRoomViewModel.onAudienceCountChanged = { [weak self] count in
+            DispatchQueue.main.async {
+                self?.liveRoomContentView.updateOnlineCount(count)
+            }
+        }
+
+        giftQueueManager.onGiftReadyToPlay = { [weak self] event in
+            DispatchQueue.main.async {
+                self?.liveRoomContentView.playGiftAnimation(event) { [weak self] in
+                    self?.giftQueueManager.finishCurrentGift()
+                }
+            }
+        }
+
+        liveRoomViewModel.onGiftAnimationRequested = { [weak self] event in
+            self?.giftQueueManager.enqueue(event)
         }
     }
 

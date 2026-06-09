@@ -23,6 +23,8 @@ enum ChatMessageType {
 
     // 用户离开直播间消息，例如“张三离开了直播间”
     case leaveRoom
+    
+    case gift
 }
 
 // 聊天消息模型

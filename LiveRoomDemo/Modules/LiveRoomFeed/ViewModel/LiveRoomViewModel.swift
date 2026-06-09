@@ -9,10 +9,16 @@ import Foundation
 
 final class LiveRoomViewModel {
     
+    // MARK: - 房间数据
+    
+    private let liveRoom: LiveRoom
+    
     // MARK: - 服务层依赖
     
     private let chatService: ChatServiceProtocol
     private let liveStreamService: LiveStreamServiceProtocol
+    private let audienceService: AudienceServiceProtocol
+    private let giftService: GiftServiceProtocol
     
     // MARK: - 状态机
     
@@ -41,6 +47,9 @@ final class LiveRoomViewModel {
     // 当前直播间生命周期状态，例如进入中、连接中、播放中、重连中
     private(set) var roomState: LiveRoomState = .idle
     
+    // 当前直播间在线人数，属于持续变化的房间数据
+    private(set) var onlineCount: Int = 0
+    
     // MARK: - 页面回调
     
     // 房间结束后通知 VC 退出直播间页面，命名更具业务语义，方便理解回调用途
@@ -51,15 +60,26 @@ final class LiveRoomViewModel {
     var onLiveStreamStateChanged: ((LiveStreamState) -> Void)?
     // 房间生命周期状态变化后通知 VC 做整体状态渲染，强调直播间状态变化
     var onLiveRoomStateChanged: ((LiveRoomState) -> Void)?
+    // 在线人数变化后通知页面刷新顶部人数区域
+    var onAudienceCountChanged: ((Int) -> Void)?
+    // 需要播放礼物动画时通知页面展示动画层
+    var onGiftAnimationRequested: ((GiftEvent) -> Void)?
     
     // MARK: - 初始化
     
     init(
+        liveRoom: LiveRoom,
         chatService: ChatServiceProtocol = MockChatService(),
-        liveStreamService: LiveStreamServiceProtocol = MockLiveStreamService()
+        liveStreamService: LiveStreamServiceProtocol = MockLiveStreamService(),
+        audienceService: AudienceServiceProtocol = MockAudienceService(),
+        giftService: GiftServiceProtocol = MockGiftService()
     ) {
+        self.liveRoom = liveRoom
         self.chatService = chatService
         self.liveStreamService = liveStreamService
+        self.audienceService = audienceService
+        self.giftService = giftService
+        self.onlineCount = liveRoom.viewerCount
     }
     
     // MARK: - 房间生命周期
@@ -70,6 +90,8 @@ final class LiveRoomViewModel {
         dispatchLiveRoomEvent(.enterRoom)
 
         startReceivingChatEvents()
+        startReceivingAudienceEvents()
+        startReceivingGiftEvents()
         
         dispatchLiveRoomEvent(.roomInfoLoaded)
         prepareLiveStream()
@@ -80,11 +102,15 @@ final class LiveRoomViewModel {
     func stopLiveRoomLifecycle() {
         chatService.stopReceivingMessages()
         liveStreamService.stopStream()
+        audienceService.stopAudience()
+        giftService.stopGiftEvents()
         reconnectManager.reset()
 
         onChatMessagesChanged = nil
         onLiveStreamStateChanged = nil
         onLiveRoomStateChanged = nil
+        onAudienceCountChanged = nil
+        onGiftAnimationRequested = nil
         onLiveRoomEnded = nil
     }
     
@@ -213,6 +239,8 @@ final class LiveRoomViewModel {
 
         chatService.stopReceivingMessages()
         liveStreamService.stopStream()
+        audienceService.stopAudience()
+        giftService.stopGiftEvents()
 
         onLiveRoomEnded?()
     }
@@ -226,6 +254,8 @@ final class LiveRoomViewModel {
         
         chatService.stopReceivingMessages()
         liveStreamService.stopStream()
+        audienceService.stopAudience()
+        giftService.stopGiftEvents()
         
         onLiveRoomEnded?()
     }
@@ -282,6 +312,59 @@ final class LiveRoomViewModel {
         default:
             return false
         }
+    }
+    
+    // MARK: - 礼物事件流
+    
+    // 开始接收礼物事件。
+    // 当前 Demo 用 MockGiftService 模拟服务端推送，先把礼物转成聊天区消息展示。
+    private func startReceivingGiftEvents() {
+        giftService.onGiftReceived = { [weak self] event in
+            guard let self else { return }
+            self.handleGiftEvent(event)
+        }
+        
+        giftService.startGiftEvents(roomID: liveRoom.id)
+    }
+    
+    // 处理礼物事件。
+    // Phase6.2 先进入聊天区；Phase6.3 再接礼物动画层。
+    private func handleGiftEvent(_ event: GiftEvent) {
+        let giftContent = "送出 \(event.giftName) x\(event.giftCount)"
+        let message = ChatMessage(
+            id: UUID().uuidString,
+            type: .gift,
+            userName: event.senderName,
+            content: giftContent,
+            timestamp: Date()
+        )
+        
+        chatMessages.append(message)
+        onChatMessagesChanged?()
+        
+        if event.shouldPlayAnimation {
+            onGiftAnimationRequested?(event)
+        }
+    }
+    
+    // MARK: - 在线人数事件流
+    
+    // 开始接收在线人数变化事件。
+    // 当前 Demo 用 MockAudienceService 模拟服务端持续推送，未来可替换为真实长连接事件。
+    private func startReceivingAudienceEvents() {
+        audienceService.onAudienceChanged = { [weak self] event in
+            guard let self else { return }
+            self.handleAudienceEvent(event)
+        }
+        
+        // 使用当前房间的真实基础数据启动在线人数流，避免不同房间共用 mock_room / 1000。
+        audienceService.startAudience(roomID: liveRoom.id, initialCount: liveRoom.viewerCount)
+    }
+    
+    // 处理在线人数事件，更新页面状态并通知 HeaderView 刷新。
+    private func handleAudienceEvent(_ event: AudienceEvent) {
+        onlineCount = event.onlineCount
+        onAudienceCountChanged?(event.onlineCount)
     }
     
     // MARK: - 聊天事件流

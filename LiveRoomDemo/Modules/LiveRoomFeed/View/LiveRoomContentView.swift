@@ -19,6 +19,7 @@ final class LiveRoomContentView: UIView {
     private let liveRoomHeaderView = LiveRoomHeaderView()
     private let livePlayerView = LivePlayerPlaceholderView()
     private let liveRoomStateLabel = UILabel()
+    private let giftAnimationView = GiftAnimationView()
     let chatMessageTableView = UITableView(frame: .zero, style: .plain)
     private let chatMessageInputView = ChatInputView()
 
@@ -47,6 +48,20 @@ final class LiveRoomContentView: UIView {
     func configure(room: LiveRoom) {
         liveRoomHeaderView.configure(with: room)
     }
+
+    // 更新直播间在线人数。
+    // 在线人数是持续变化数据，只刷新 Header 人数区域，不重刷整个直播间信息。
+    func updateOnlineCount(_ count: Int) {
+        liveRoomHeaderView.updateOnlineCount(count)
+    }
+
+    // 播放礼物动画。
+    // ContentView 只负责把礼物动画请求转发给 GiftAnimationView，不再直接管理动画 Label。
+    // completion 用于通知 GiftQueueManager 当前礼物已经播放完，可以继续播放下一个礼物。
+    func playGiftAnimation(_ event: GiftEvent, completion: @escaping () -> Void) {
+        giftAnimationView.playGiftAnimation(event, completion: completion)
+    }
+    
 
     // 根据播放器状态刷新播放器区域
     func renderStreamState(_ state: LiveStreamState) {
@@ -91,6 +106,7 @@ final class LiveRoomContentView: UIView {
         liveRoomStateLabel.layer.masksToBounds = true
     }
 
+
     private func setupChatMessageTableView() {
         chatMessageTableView.dataSource = nil
         chatMessageTableView.separatorStyle = .none
@@ -108,6 +124,7 @@ final class LiveRoomContentView: UIView {
         addSubview(liveRoomHeaderView)
         addSubview(livePlayerView)
         addSubview(liveRoomStateLabel)
+        addSubview(giftAnimationView)
         addSubview(chatMessageTableView)
         addSubview(chatMessageInputView)
 
@@ -128,6 +145,13 @@ final class LiveRoomContentView: UIView {
             make.trailing.equalTo(livePlayerView.snp.trailing).offset(-12)
             make.height.equalTo(24)
             make.width.greaterThanOrEqualTo(80)
+        }
+
+        giftAnimationView.snp.makeConstraints { make in
+            make.centerX.equalTo(livePlayerView.snp.centerX)
+            make.bottom.equalTo(livePlayerView.snp.bottom).offset(-20)
+            make.height.equalTo(36)
+            make.width.greaterThanOrEqualTo(220)
         }
 
         chatMessageInputView.snp.makeConstraints { make in
@@ -155,4 +179,5 @@ final class LiveRoomContentView: UIView {
         observer.start()
         keyboardObserver = observer
     }
+    
 }
