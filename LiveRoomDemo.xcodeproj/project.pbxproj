@@ -21,7 +21,6 @@
 		2BAC48D42FCDAB29008ADCDD /* RoomListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48D32FCDAB29008ADCDD /* RoomListViewController.swift */; };
 		2BAC48D62FCDAB36008ADCDD /* RoomListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48D52FCDAB36008ADCDD /* RoomListViewModel.swift */; };
 		2BAC48D82FCDAB42008ADCDD /* RoomCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48D72FCDAB42008ADCDD /* RoomCell.swift */; };
-		2BAC48DA2FCDAB50008ADCDD /* LiveRoomViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48D92FCDAB50008ADCDD /* LiveRoomViewController.swift */; };
 		2BAC48DC2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48DB2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift */; };
 		2BAC48DE2FCDAB63008ADCDD /* LiveRoomHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48DD2FCDAB62008ADCDD /* LiveRoomHeaderView.swift */; };
 		2BAC48E02FCDAB6D008ADCDD /* ChatInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48DF2FCDAB6D008ADCDD /* ChatInputView.swift */; };
@@ -81,7 +80,6 @@
 		2BAC48D32FCDAB29008ADCDD /* RoomListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomListViewController.swift; sourceTree = "<group>"; };
 		2BAC48D52FCDAB36008ADCDD /* RoomListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomListViewModel.swift; sourceTree = "<group>"; };
 		2BAC48D72FCDAB42008ADCDD /* RoomCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomCell.swift; sourceTree = "<group>"; };
-		2BAC48D92FCDAB50008ADCDD /* LiveRoomViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomViewController.swift; sourceTree = "<group>"; };
 		2BAC48DB2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePlayerPlaceholderView.swift; sourceTree = "<group>"; };
 		2BAC48DD2FCDAB62008ADCDD /* LiveRoomHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomHeaderView.swift; sourceTree = "<group>"; };
 		2BAC48DF2FCDAB6D008ADCDD /* ChatInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatInputView.swift; sourceTree = "<group>"; };
@@ -151,18 +149,11 @@
 			path = Reconnect;
 			sourceTree = "<group>";
 		};
-		2B11EEA52FD5716F00F214DB /* VC */ = {
-			isa = PBXGroup;
-			children = (
-				2BAC48D92FCDAB50008ADCDD /* LiveRoomViewController.swift */,
-			);
-			path = VC;
-			sourceTree = "<group>";
-		};
 		2B11EEAC2FD57EBA00F214DB /* LiveRoomFeed */ = {
 			isa = PBXGroup;
 			children = (
 				2B11EEAF2FD59F4100F214DB /* View */,
+				2BAC48CD2FCDAAB3008ADCDD /* ViewModel */,
 				2B11EEAD2FD57EEC00F214DB /* VC */,
 				2B11EEAE2FD57EF400F214DB /* Cell */,
 			);
@@ -181,6 +172,7 @@
 			isa = PBXGroup;
 			children = (
 				2B11EEAA2FD57E9E00F214DB /* LiveRoomPageCell.swift */,
+				2BAC48E12FCDAB76008ADCDD /* ChatMessageCell.swift */,
 			);
 			path = Cell;
 			sourceTree = "<group>";
@@ -189,6 +181,9 @@
 			isa = PBXGroup;
 			children = (
 				2B11EEA62FD5720600F214DB /* LiveRoomContentView.swift */,
+				2BAC48DB2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift */,
+				2BAC48DD2FCDAB62008ADCDD /* LiveRoomHeaderView.swift */,
+				2BAC48DF2FCDAB6D008ADCDD /* ChatInputView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -213,16 +208,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		2BAC48B52FCDA806008ADCDD /* LiveRoom */ = {
-			isa = PBXGroup;
-			children = (
-				2B11EEA52FD5716F00F214DB /* VC */,
-				2BAC48CC2FCDAAAA008ADCDD /* View */,
-				2BAC48CD2FCDAAB3008ADCDD /* ViewModel */,
-			);
-			path = LiveRoom;
-			sourceTree = "<group>";
-		};
 		2BAC48B62FCDA806008ADCDD /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -237,7 +222,6 @@
 			isa = PBXGroup;
 			children = (
 				2BAC48C92FCDA89A008ADCDD /* RoomList */,
-				2BAC48B52FCDA806008ADCDD /* LiveRoom */,
 				2B11EEAC2FD57EBA00F214DB /* LiveRoomFeed */,
 			);
 			path = Modules;
@@ -307,17 +291,6 @@
 				2BAC48D72FCDAB42008ADCDD /* RoomCell.swift */,
 			);
 			path = Cell;
-			sourceTree = "<group>";
-		};
-		2BAC48CC2FCDAAAA008ADCDD /* View */ = {
-			isa = PBXGroup;
-			children = (
-				2BAC48DB2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift */,
-				2BAC48DD2FCDAB62008ADCDD /* LiveRoomHeaderView.swift */,
-				2BAC48DF2FCDAB6D008ADCDD /* ChatInputView.swift */,
-				2BAC48E12FCDAB76008ADCDD /* ChatMessageCell.swift */,
-			);
-			path = View;
 			sourceTree = "<group>";
 		};
 		2BAC48CD2FCDAAB3008ADCDD /* ViewModel */ = {
@@ -534,7 +507,6 @@
 				2BAC48E22FCDAB76008ADCDD /* ChatMessageCell.swift in Sources */,
 				2BAC48DC2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift in Sources */,
 				2B11EEAB2FD57E9E00F214DB /* LiveRoomPageCell.swift in Sources */,
-				2BAC48DA2FCDAB50008ADCDD /* LiveRoomViewController.swift in Sources */,
 				2BAC48D42FCDAB29008ADCDD /* RoomListViewController.swift in Sources */,
 				2BAC48F22FCDABC4008ADCDD /* LiveRoom.swift in Sources */,
 				2B11EEA72FD5720600F214DB /* LiveRoomContentView.swift in Sources */,

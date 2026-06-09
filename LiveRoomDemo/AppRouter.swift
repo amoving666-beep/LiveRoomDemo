@@ -17,11 +17,6 @@ final class AppRouter {
         return UINavigationController(rootViewController: roomListViewController)
     }
 
-    func pushLiveRoom(from viewController: UIViewController, room: LiveRoom) {
-        let liveRoomViewController = LiveRoomViewController(room: room)
-        viewController.navigationController?.pushViewController(liveRoomViewController, animated: true)
-    }
-
     // 进入直播 Feed 页面
     // 传入完整房间列表和当前点击下标，用于支持上下滑动切换直播间
     func pushLiveRoomFeed(

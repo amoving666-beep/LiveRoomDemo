@@ -17,6 +17,10 @@ final class LiveRoomFeedViewController: UIViewController {
     // 当前正在展示的房间下标，用于控制播放 / 停止 / 预加载
     private var currentRoomIndex = 0
 
+    // 已进入预加载队列的房间 ID
+    // 当前阶段只记录预加载状态，不提前创建 ViewModel，避免 Feed 生命周期复杂化
+    private var prefetchedRoomIDs = Set<String>()
+
     // MARK: - UI
 
     private let liveRoomCollectionView: UICollectionView
@@ -52,6 +56,7 @@ final class LiveRoomFeedViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         stopLiveRoomIfCellVisible(at: currentRoomIndex)
+        prefetchedRoomIDs.removeAll()
     }
 
     // MARK: - UI
@@ -204,6 +209,9 @@ extension LiveRoomFeedViewController: UICollectionViewDataSourcePrefetching {
         for indexPath in indexPaths {
             guard liveRooms.indices.contains(indexPath.item) else { continue }
             let room = liveRooms[indexPath.item]
+            guard !prefetchedRoomIDs.contains(room.id) else { continue }
+
+            prefetchedRoomIDs.insert(room.id)
             print("预加载房间入口：\(room.title)")
         }
     }
@@ -214,6 +222,8 @@ extension LiveRoomFeedViewController: UICollectionViewDataSourcePrefetching {
         for indexPath in indexPaths {
             guard liveRooms.indices.contains(indexPath.item) else { continue }
             let room = liveRooms[indexPath.item]
+            guard prefetchedRoomIDs.remove(room.id) != nil else { continue }
+
             print("取消预加载房间：\(room.title)")
         }
     }
