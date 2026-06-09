@@ -14,6 +14,9 @@ final class LiveRoomPageCell: UICollectionViewCell {
     private var liveRoom: LiveRoom?
     private var liveRoomViewModel: LiveRoomViewModel?
 
+    // 当前 Cell 绑定的房间 ViewModel
+    // 目前仍由 Cell 创建，后续会改为 Feed 统一管理并注入
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -33,17 +36,11 @@ final class LiveRoomPageCell: UICollectionViewCell {
         liveRoomContentView.configure(room: room)
     }
 
-    // 当前 cell 进入可见区域时启动直播间
-    // 每个 LiveRoomPageCell 都有自己的 ViewModel，避免多个房间共用状态
-    @discardableResult
-    func startLiveRoom() -> Bool {
-        guard liveRoomViewModel == nil else { return false }
-        guard let liveRoom else { return false }
-
-        let liveRoomViewModel = LiveRoomViewModel()
+    // 绑定外部传入的 ViewModel
+    // Phase6 预加载完成后，Feed 会提前创建 ViewModel 并通过这里注入
+    func bindLiveRoomViewModel(_ liveRoomViewModel: LiveRoomViewModel) {
         self.liveRoomViewModel = liveRoomViewModel
 
-        liveRoomContentView.configure(room: liveRoom)
         liveRoomContentView.chatMessageTableView.dataSource = self
 
         liveRoomContentView.onSendChatText = { [weak self] text in
@@ -51,6 +48,22 @@ final class LiveRoomPageCell: UICollectionViewCell {
         }
 
         bind(liveRoomViewModel)
+    }
+
+    // 当前 cell 进入可见区域时启动直播间
+    // 每个 LiveRoomPageCell 都有自己的 ViewModel，避免多个房间共用状态
+    @discardableResult
+    func startLiveRoom() -> Bool {
+        guard liveRoomViewModel == nil else { return false }
+        guard let liveRoom else { return false }
+
+        // 当前阶段仍由 Cell 创建 ViewModel。
+        // 后续会改成 Feed 预创建后通过 bindLiveRoomViewModel 注入。
+        let liveRoomViewModel = LiveRoomViewModel()
+        bindLiveRoomViewModel(liveRoomViewModel)
+
+        liveRoomContentView.configure(room: liveRoom)
+
         liveRoomViewModel.enterRoom()
 
         return true

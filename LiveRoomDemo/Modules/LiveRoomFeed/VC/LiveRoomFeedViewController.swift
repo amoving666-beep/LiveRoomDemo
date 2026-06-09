@@ -97,7 +97,7 @@ final class LiveRoomFeedViewController: UIViewController {
         let indexPath = IndexPath(item: currentRoomIndex, section: 0)
         liveRoomCollectionView.scrollToItem(at: indexPath, at: .centeredVertically, animated: false)
         liveRoomCollectionView.layoutIfNeeded()
-        startLiveRoomIfCellVisible(at: currentRoomIndex)
+        // 房间启动统一交给 willDisplay / updateCurrentRoomIfNeeded，避免初始定位和 cell 展示阶段重复启动。
     }
 
     // MARK: - 房间切换
@@ -140,6 +140,22 @@ final class LiveRoomFeedViewController: UIViewController {
         if cell.stopLiveRoom() {
             print("停止房间：\(liveRooms[index].title)")
         }
+    }
+    // 记录房间进入预加载队列
+    // 当前阶段只做状态管理，后续可以扩展为提前创建 ViewModel 或准备播放器资源
+    private func preparePrefetchRoom(_ room: LiveRoom) {
+        guard !prefetchedRoomIDs.contains(room.id) else { return }
+
+        prefetchedRoomIDs.insert(room.id)
+        print("预加载房间入口：\(room.title)")
+    }
+
+    // 取消房间预加载状态
+    // 用户快速滑动或离开页面时，可以在这里释放预加载资源
+    private func cancelPrefetchRoom(_ room: LiveRoom) {
+        guard prefetchedRoomIDs.remove(room.id) != nil else { return }
+
+        print("取消预加载房间：\(room.title)")
     }
 }
 
@@ -209,10 +225,7 @@ extension LiveRoomFeedViewController: UICollectionViewDataSourcePrefetching {
         for indexPath in indexPaths {
             guard liveRooms.indices.contains(indexPath.item) else { continue }
             let room = liveRooms[indexPath.item]
-            guard !prefetchedRoomIDs.contains(room.id) else { continue }
-
-            prefetchedRoomIDs.insert(room.id)
-            print("预加载房间入口：\(room.title)")
+            preparePrefetchRoom(room)
         }
     }
 
@@ -222,9 +235,7 @@ extension LiveRoomFeedViewController: UICollectionViewDataSourcePrefetching {
         for indexPath in indexPaths {
             guard liveRooms.indices.contains(indexPath.item) else { continue }
             let room = liveRooms[indexPath.item]
-            guard prefetchedRoomIDs.remove(room.id) != nil else { continue }
-
-            print("取消预加载房间：\(room.title)")
+            cancelPrefetchRoom(room)
         }
     }
 }
