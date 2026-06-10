@@ -86,6 +86,7 @@ final class LiveRoomPageCell: UICollectionViewCell {
         giftQueueManager.reset()
         liveRoomContentView.renderStreamState(.idle)
         liveRoomContentView.renderRoomState(.idle)
+        liveRoomContentView.renderIMConnectionState(.disconnected)
 
         return true
     }
@@ -110,6 +111,12 @@ final class LiveRoomPageCell: UICollectionViewCell {
         liveRoomViewModel.onLiveRoomStateChanged = { [weak self] state in
             DispatchQueue.main.async {
                 self?.liveRoomContentView.renderRoomState(state)
+            }
+        }
+
+        liveRoomViewModel.onIMConnectionStateChanged = { [weak self] state in
+            DispatchQueue.main.async {
+                self?.liveRoomContentView.renderIMConnectionState(state)
             }
         }
 

@@ -56,13 +56,16 @@ extension LiveRoomViewModel {
                 break
 
             case .playing:
+                // 播放器首帧成功后，房间才从进入流程切到直播中。
                 self.dispatchLiveRoomEvent(.streamPlaying)
 
             case .reconnecting:
-                self.dispatchLiveRoomEvent(.networkLost)
+                // 播放器重连属于 LiveStreamState，不再改变房间生命周期。
+                break
 
             case .failed(let message):
-                self.dispatchLiveRoomEvent(.reconnectFailed(message))
+                // 播放器失败属于 LiveStreamState，不等于房间结束。
+                print("播放器失败：\(message)")
             }
         }
     }

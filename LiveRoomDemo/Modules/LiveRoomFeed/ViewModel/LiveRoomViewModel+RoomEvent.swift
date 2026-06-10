@@ -65,10 +65,17 @@ extension LiveRoomViewModel {
 
     // MARK: - 聊天事件流
 
-    // 开始接收聊天事件，使用服务层回调，方便后续替换为真实 IM 或 WebSocket 实现。
+    // 开始接收聊天事件。
     func startReceivingChatEvents() {
+        updateIMConnectionState(.connecting)
+
         chatService.startReceivingMessages { [weak self] event in
             guard let self else { return }
+
+            if self.imConnectionState != .connected {
+                self.updateIMConnectionState(.connected)
+            }
+
             self.convertChatEventToRoomEvent(event)
         }
     }
@@ -116,12 +123,20 @@ extension LiveRoomViewModel {
         }
     }
 
+    // MARK: - IM 状态
+
+    // 更新 IM 连接状态。
+    func updateIMConnectionState(_ state: IMConnectionState) {
+        imConnectionState = state
+        onIMConnectionStateChanged?(state)
+    }
+
     // MARK: - RoomEvent 分发
 
     // 直播间业务事件统一入口。
     // Chat / Audience / Gift 等 Service 事件先统一包装成 RoomEvent，
     // 再由这里分发到具体处理方法，避免 ViewModel 里散落多套事件入口。
-    private func handleRoomEvent(_ event: RoomEvent) {
+    private func handleRoomEvent(_ event: LiveRoomBusinessEvent) {
         switch event {
         case .chat(let message):
             handleChatMessage(message)

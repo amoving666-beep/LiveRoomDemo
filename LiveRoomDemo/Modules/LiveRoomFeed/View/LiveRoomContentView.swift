@@ -19,6 +19,7 @@ final class LiveRoomContentView: UIView {
     private let liveRoomHeaderView = LiveRoomHeaderView()
     private let livePlayerView = LivePlayerPlaceholderView()
     private let liveRoomStateLabel = UILabel()
+    private let imStateLabel = UILabel()
     private let giftAnimationView = GiftAnimationView()
     let chatMessageTableView = UITableView(frame: .zero, style: .plain)
     private let chatMessageInputView = ChatInputView()
@@ -69,8 +70,29 @@ final class LiveRoomContentView: UIView {
     }
 
     // 根据房间生命周期状态刷新页面状态展示
-    func renderRoomState(_ state: LiveRoomState) {
+    func renderRoomState(_ state: RoomLifecycleState) {
         liveRoomStateLabel.text = state.displayText
+    }
+
+    // 刷新 IM 连接状态。
+    func renderIMConnectionState(_ state: IMConnectionState) {
+        switch state {
+        case .disconnected:
+            imStateLabel.text = "IM未连接"
+            imStateLabel.textColor = .secondaryLabel
+
+        case .connecting:
+            imStateLabel.text = "IM连接中"
+            imStateLabel.textColor = .systemOrange
+
+        case .connected:
+            imStateLabel.text = "IM已连接"
+            imStateLabel.textColor = .systemGreen
+
+        case .reconnecting:
+            imStateLabel.text = "IM重连中"
+            imStateLabel.textColor = .systemOrange
+        }
     }
 
     // 发送新消息后滚动到聊天列表底部
@@ -90,6 +112,7 @@ final class LiveRoomContentView: UIView {
         backgroundColor = .systemBackground
 
         setupLiveRoomStateLabel()
+        setupIMStateLabel()
         setupChatMessageTableView()
         setupChatMessageInputView()
         setupLayout()
@@ -106,6 +129,15 @@ final class LiveRoomContentView: UIView {
         liveRoomStateLabel.layer.masksToBounds = true
     }
 
+    private func setupIMStateLabel() {
+        imStateLabel.text = "IM未连接"
+        imStateLabel.font = .systemFont(ofSize: 12)
+        imStateLabel.textColor = .secondaryLabel
+        imStateLabel.textAlignment = .center
+        imStateLabel.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.85)
+        imStateLabel.layer.cornerRadius = 11
+        imStateLabel.layer.masksToBounds = true
+    }
 
     private func setupChatMessageTableView() {
         chatMessageTableView.dataSource = nil
@@ -124,6 +156,7 @@ final class LiveRoomContentView: UIView {
         addSubview(liveRoomHeaderView)
         addSubview(livePlayerView)
         addSubview(liveRoomStateLabel)
+        addSubview(imStateLabel)
         addSubview(giftAnimationView)
         addSubview(chatMessageTableView)
         addSubview(chatMessageInputView)
@@ -145,6 +178,13 @@ final class LiveRoomContentView: UIView {
             make.trailing.equalTo(livePlayerView.snp.trailing).offset(-12)
             make.height.equalTo(24)
             make.width.greaterThanOrEqualTo(80)
+        }
+
+        imStateLabel.snp.makeConstraints { make in
+            make.top.equalTo(livePlayerView.snp.top).offset(12)
+            make.leading.equalTo(livePlayerView.snp.leading).offset(12)
+            make.height.equalTo(22)
+            make.width.greaterThanOrEqualTo(78)
         }
 
         giftAnimationView.snp.makeConstraints { make in

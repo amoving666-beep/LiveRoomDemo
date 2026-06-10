@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum RoomEvent {
+enum LiveRoomBusinessEvent {
     case chat(ChatMessage)
     case audience(AudienceEvent)
     case gift(GiftEvent)

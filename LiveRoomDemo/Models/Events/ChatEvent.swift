@@ -24,5 +24,5 @@ enum ChatEvent {
 
     // 房间生命周期状态发生变化
     // 用于把状态机流转也转换成聊天消息流中的系统事件
-    case roomStateChanged(oldState: LiveRoomState, newState: LiveRoomState)
+    case roomStateChanged(oldState: RoomLifecycleState, newState: RoomLifecycleState)
 }
