@@ -67,7 +67,7 @@ extension RoomListViewController: UITableViewDataSource {
 
 extension RoomListViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let room = viewModel.room(at: indexPath.row) else { return }
+        guard viewModel.room(at: indexPath.row) != nil else { return }
         // 页面跳转统一交给 AppRouter 处理
         AppRouter.shared.pushLiveRoomFeed(from: self, rooms: viewModel.rooms, initialIndex: indexPath.row)
     }
