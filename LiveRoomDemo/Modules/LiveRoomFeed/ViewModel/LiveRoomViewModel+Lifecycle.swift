@@ -1,4 +1,3 @@
-
 //
 //  LiveRoomViewModel+Lifecycle.swift
 //  LiveRoomDemo
@@ -27,23 +26,23 @@ extension LiveRoomViewModel {
     // Feed Cell 离开屏幕时停止整个房间生命周期。
     func stopLiveRoomLifecycle() {
         chatService.stopReceivingMessages()
-        liveStreamService.stopStream()
+        streamService.stopStream()
         audienceService.stopAudience()
         giftService.stopGiftEvents()
 
         reconnectManager.reset()
 
         onChatMessagesChanged = nil
-        onLiveStreamStateChanged = nil
-        onLiveRoomStateChanged = nil
-        onAudienceCountChanged = nil
+        onStreamStateChanged = nil
+        onRoomStateChanged = nil
+        onAudienceChanged = nil
         onGiftAnimationRequested = nil
         onLiveRoomEnded = nil
     }
 
     // 准备直播流。
     func prepareLiveStream() {
-        liveStreamService.prepareStream { [weak self] state in
+        streamService.prepareStream { [weak self] state in
             guard let self else { return }
 
             self.updateLiveStreamState(state)
@@ -73,7 +72,7 @@ extension LiveRoomViewModel {
     // 更新播放器状态。
     func updateLiveStreamState(_ state: LiveStreamState) {
         streamState = state
-        onLiveStreamStateChanged?(state)
+        onStreamStateChanged?(state)
     }
 
     // 外部结束事件统一出口。
@@ -84,7 +83,7 @@ extension LiveRoomViewModel {
         reconnectManager.reset()
 
         chatService.stopReceivingMessages()
-        liveStreamService.stopStream()
+        streamService.stopStream()
         audienceService.stopAudience()
         giftService.stopGiftEvents()
 
@@ -101,7 +100,7 @@ extension LiveRoomViewModel {
         reconnectManager.reset()
 
         chatService.stopReceivingMessages()
-        liveStreamService.stopStream()
+        streamService.stopStream()
         audienceService.stopAudience()
         giftService.stopGiftEvents()
 
@@ -123,7 +122,7 @@ extension LiveRoomViewModel {
 
         print("状态流转：\(oldState.displayText) -- \(event) --> \(nextState.displayText)")
 
-        onLiveRoomStateChanged?(nextState)
+        onRoomStateChanged?(nextState)
 
         return true
     }

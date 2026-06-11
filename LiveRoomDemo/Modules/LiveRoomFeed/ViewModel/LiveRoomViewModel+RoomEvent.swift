@@ -7,7 +7,7 @@
 
 import Foundation
 
-// MARK: - RoomEvent 统一事件入口
+// MARK: - 直播间业务事件入口
 
 extension LiveRoomViewModel {
 
@@ -18,10 +18,10 @@ extension LiveRoomViewModel {
     func startReceivingGiftEvents() {
         giftService.onGiftReceived = { [weak self] event in
             guard let self else { return }
-            self.handleRoomEvent(.gift(event))
+            self.routeRoomEvent(.gift(event))
         }
 
-        giftService.startGiftEvents(roomID: liveRoom.id)
+        giftService.startGiftEvents(roomID: activeRoom.id)
     }
 
     // 处理礼物事件。
@@ -36,7 +36,7 @@ extension LiveRoomViewModel {
             timestamp: Date()
         )
 
-        handleRoomEvent(.chat(message))
+        routeRoomEvent(.chat(message))
 
         if event.shouldPlayAnimation {
             onGiftAnimationRequested?(event)
@@ -50,38 +50,38 @@ extension LiveRoomViewModel {
     func startReceivingAudienceEvents() {
         audienceService.onAudienceChanged = { [weak self] event in
             guard let self else { return }
-            self.handleRoomEvent(.audience(event))
+            self.routeRoomEvent(.audience(event))
         }
 
         // 使用当前房间的真实基础数据启动在线人数流，避免不同房间共用 mock_room / 1000。
-        audienceService.startAudience(roomID: liveRoom.id, initialCount: liveRoom.viewerCount)
+        audienceService.startAudience(roomID: activeRoom.id, initialCount: activeRoom.viewerCount)
     }
 
     // 处理在线人数事件，更新页面状态并通知 HeaderView 刷新。
     private func handleAudienceEvent(_ event: AudienceEvent) {
         onlineCount = event.onlineCount
-        onAudienceCountChanged?(event.onlineCount)
+        onAudienceChanged?(event.onlineCount)
     }
 
     // MARK: - 聊天事件流
 
     // 开始接收聊天事件。
     func startReceivingChatEvents() {
-        updateIMConnectionState(.connecting)
+        updateIMState(.connecting)
 
         chatService.startReceivingMessages { [weak self] event in
             guard let self else { return }
 
-            if self.imConnectionState != .connected {
-                self.updateIMConnectionState(.connected)
+            if self.imState != .connected {
+                self.updateIMState(.connected)
             }
 
-            self.convertChatEventToRoomEvent(event)
+            self.routeChatEvent(event)
         }
     }
 
     // 将聊天服务事件转换成直播间统一事件，再交给 handleRoomEvent 处理。
-    private func convertChatEventToRoomEvent(_ event: ChatEvent) {
+    private func routeChatEvent(_ event: ChatEvent) {
         switch event {
         case let .receiveUserMessage(userName, content):
             let message = ChatMessage(
@@ -91,7 +91,7 @@ extension LiveRoomViewModel {
                 content: content,
                 timestamp: Date()
             )
-            handleRoomEvent(.chat(message))
+            routeRoomEvent(.chat(message))
 
         case let .receiveSystemMessage(content):
             // 服务端系统事件先只打日志，不进入聊天列表，避免系统消息影响真实聊天内容。
@@ -105,7 +105,7 @@ extension LiveRoomViewModel {
                 content: "",
                 timestamp: Date()
             )
-            handleRoomEvent(.chat(message))
+            routeRoomEvent(.chat(message))
 
         case let .userLeaveRoom(userName):
             let message = ChatMessage(
@@ -115,7 +115,7 @@ extension LiveRoomViewModel {
                 content: "",
                 timestamp: Date()
             )
-            handleRoomEvent(.chat(message))
+            routeRoomEvent(.chat(message))
 
         case let .roomStateChanged(oldState, newState):
             // 房间状态变化由 roomStateLabel 和控制台承接，不作为聊天消息展示。
@@ -126,9 +126,9 @@ extension LiveRoomViewModel {
     // MARK: - IM 状态
 
     // 更新 IM 连接状态。
-    func updateIMConnectionState(_ state: IMConnectionState) {
-        imConnectionState = state
-        onIMConnectionStateChanged?(state)
+    func updateIMState(_ state: IMConnectionState) {
+        imState = state
+        onIMStateChanged?(state)
     }
 
     // MARK: - RoomEvent 分发
@@ -136,7 +136,7 @@ extension LiveRoomViewModel {
     // 直播间业务事件统一入口。
     // Chat / Audience / Gift 等 Service 事件先统一包装成 RoomEvent，
     // 再由这里分发到具体处理方法，避免 ViewModel 里散落多套事件入口。
-    private func handleRoomEvent(_ event: LiveRoomBusinessEvent) {
+    private func routeRoomEvent(_ event: LiveRoomBusinessEvent) {
         switch event {
         case .chat(let message):
             handleChatMessage(message)

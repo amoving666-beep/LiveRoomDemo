@@ -11,12 +11,12 @@ final class LiveRoomViewModel {
     
     // MARK: - 房间数据
     
-    let liveRoom: LiveRoom
+    let activeRoom: LiveRoom
     
     // MARK: - 服务层依赖
     
     let chatService: ChatServiceProtocol
-    let liveStreamService: LiveStreamServiceProtocol
+    let streamService: LiveStreamServiceProtocol
     let audienceService: AudienceServiceProtocol
     let giftService: GiftServiceProtocol
     
@@ -48,7 +48,7 @@ final class LiveRoomViewModel {
     var roomState: RoomLifecycleState = .idle
     
     // IM 连接状态
-    var imConnectionState: IMConnectionState = .disconnected
+    var imState: IMConnectionState = .disconnected
     
     // 在线人数
     var onlineCount: Int = 0
@@ -60,13 +60,13 @@ final class LiveRoomViewModel {
     // 聊天消息更新
     var onChatMessagesChanged: (() -> Void)?
     // 播放器状态更新
-    var onLiveStreamStateChanged: ((LiveStreamState) -> Void)?
+    var onStreamStateChanged: ((LiveStreamState) -> Void)?
     // 房间状态更新
-    var onLiveRoomStateChanged: ((RoomLifecycleState) -> Void)?
+    var onRoomStateChanged: ((RoomLifecycleState) -> Void)?
     // IM 状态更新
-    var onIMConnectionStateChanged: ((IMConnectionState) -> Void)?
+    var onIMStateChanged: ((IMConnectionState) -> Void)?
     // 在线人数更新
-    var onAudienceCountChanged: ((Int) -> Void)?
+    var onAudienceChanged: ((Int) -> Void)?
     // 播放礼物动画
     var onGiftAnimationRequested: ((GiftEvent) -> Void)?
     
@@ -79,9 +79,9 @@ final class LiveRoomViewModel {
         audienceService: AudienceServiceProtocol = MockAudienceService(),
         giftService: GiftServiceProtocol = MockGiftService()
     ) {
-        self.liveRoom = liveRoom
+        self.activeRoom = liveRoom
         self.chatService = chatService
-        self.liveStreamService = liveStreamService
+        self.streamService = liveStreamService
         self.audienceService = audienceService
         self.giftService = giftService
         self.onlineCount = liveRoom.viewerCount

@@ -102,19 +102,19 @@ final class LiveRoomPageCell: UICollectionViewCell {
             }
         }
 
-        liveRoomViewModel.onLiveStreamStateChanged = { [weak self] state in
+        liveRoomViewModel.onStreamStateChanged = { [weak self] state in
             DispatchQueue.main.async {
                 self?.liveRoomContentView.renderStreamState(state)
             }
         }
 
-        liveRoomViewModel.onLiveRoomStateChanged = { [weak self] state in
+        liveRoomViewModel.onRoomStateChanged = { [weak self] state in
             DispatchQueue.main.async {
                 self?.liveRoomContentView.renderRoomState(state)
             }
         }
 
-        liveRoomViewModel.onIMConnectionStateChanged = { [weak self] state in
+        liveRoomViewModel.onIMStateChanged = { [weak self] state in
             DispatchQueue.main.async {
                 self?.liveRoomContentView.renderIMConnectionState(state)
             }
@@ -126,7 +126,7 @@ final class LiveRoomPageCell: UICollectionViewCell {
             }
         }
 
-        liveRoomViewModel.onAudienceCountChanged = { [weak self] count in
+        liveRoomViewModel.onAudienceChanged = { [weak self] count in
             DispatchQueue.main.async {
                 self?.liveRoomContentView.updateOnlineCount(count)
             }
