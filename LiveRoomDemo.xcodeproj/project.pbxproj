@@ -11,6 +11,10 @@
 		2B11EEA72FD5720600F214DB /* LiveRoomContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B11EEA62FD5720600F214DB /* LiveRoomContentView.swift */; };
 		2B11EEA92FD5780500F214DB /* LiveRoomFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B11EEA82FD5780500F214DB /* LiveRoomFeedViewController.swift */; };
 		2B11EEAB2FD57E9E00F214DB /* LiveRoomPageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B11EEAA2FD57E9E00F214DB /* LiveRoomPageCell.swift */; };
+		2B255FEA2FDC36A300F08285 /* RoomEventSourceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B255FE92FDC36A300F08285 /* RoomEventSourceProtocol.swift */; };
+		2B255FEC2FDC36B100F08285 /* SupabaseRealtimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B255FEB2FDC36B100F08285 /* SupabaseRealtimeService.swift */; };
+		2B255FEF2FDC393C00F08285 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 2B255FEE2FDC393C00F08285 /* Supabase */; };
+		2B255FF12FDC3ABD00F08285 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B255FF02FDC3ABD00F08285 /* SupabaseConfig.swift */; };
 		2B5BDAA52FD314630048CC88 /* ChatEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5BDAA42FD314630048CC88 /* ChatEvent.swift */; };
 		2BA071AF2FD97F0A00244644 /* LiveRoomBusinessEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA071AE2FD97F0A00244644 /* LiveRoomBusinessEvent.swift */; };
 		2BA071B12FD9826F00244644 /* LiveRoomViewModel+RoomEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA071B02FD9826F00244644 /* LiveRoomViewModel+RoomEvent.swift */; };
@@ -80,6 +84,9 @@
 		2B11EEA62FD5720600F214DB /* LiveRoomContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomContentView.swift; sourceTree = "<group>"; };
 		2B11EEA82FD5780500F214DB /* LiveRoomFeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomFeedViewController.swift; sourceTree = "<group>"; };
 		2B11EEAA2FD57E9E00F214DB /* LiveRoomPageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomPageCell.swift; sourceTree = "<group>"; };
+		2B255FE92FDC36A300F08285 /* RoomEventSourceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomEventSourceProtocol.swift; sourceTree = "<group>"; };
+		2B255FEB2FDC36B100F08285 /* SupabaseRealtimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseRealtimeService.swift; sourceTree = "<group>"; };
+		2B255FF02FDC3ABD00F08285 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		2B5BDAA42FD314630048CC88 /* ChatEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatEvent.swift; sourceTree = "<group>"; };
 		2BA071AE2FD97F0A00244644 /* LiveRoomBusinessEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomBusinessEvent.swift; sourceTree = "<group>"; };
 		2BA071B02FD9826F00244644 /* LiveRoomViewModel+RoomEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LiveRoomViewModel+RoomEvent.swift"; sourceTree = "<group>"; };
@@ -148,6 +155,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B255FEF2FDC393C00F08285 /* Supabase in Frameworks */,
 				2BAC48FD2FCDB52E008ADCDD /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -382,6 +390,7 @@
 		2BAC48CE2FCDAACC008ADCDD /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
+				2B255FE92FDC36A300F08285 /* RoomEventSourceProtocol.swift */,
 				2BAC48E52FCDAB8D008ADCDD /* RoomServiceProtocol.swift */,
 				2BAC48E72FCDAB96008ADCDD /* ChatServiceProtocol.swift */,
 				2BAC48E92FCDAB9E008ADCDD /* LiveStreamServiceProtocol.swift */,
@@ -394,6 +403,7 @@
 		2BAC48CF2FCDAAD5008ADCDD /* Mock */ = {
 			isa = PBXGroup;
 			children = (
+				2B255FEB2FDC36B100F08285 /* SupabaseRealtimeService.swift */,
 				2BAC48EB2FCDABA9008ADCDD /* MockRoomService.swift */,
 				2BAC48ED2FCDABB1008ADCDD /* MockChatService.swift */,
 				2BAC48EF2FCDABB8008ADCDD /* MockLiveStreamService.swift */,
@@ -409,6 +419,7 @@
 				2BAC48F72FCDABE2008ADCDD /* Base.swift */,
 				2BAC48F92FCDABEB008ADCDD /* Extensions.swift */,
 				2BDF54472FCF3522008EB79A /* KeyboardObserver.swift */,
+				2B255FF02FDC3ABD00F08285 /* SupabaseConfig.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -431,6 +442,7 @@
 			name = LiveRoomDemo;
 			packageProductDependencies = (
 				2BAC48FC2FCDB52E008ADCDD /* SnapKit */,
+				2B255FEE2FDC393C00F08285 /* Supabase */,
 			);
 			productName = LiveRoomDemo;
 			productReference = 2BAC487B2FCDA51C008ADCDD /* LiveRoomDemo.app */;
@@ -516,6 +528,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				2BAC48FB2FCDB52E008ADCDD /* XCRemoteSwiftPackageReference "SnapKit" */,
+				2B255FED2FDC393C00F08285 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2BAC487C2FCDA51C008ADCDD /* Products */;
@@ -581,6 +594,7 @@
 				2BAC48E62FCDAB8D008ADCDD /* RoomServiceProtocol.swift in Sources */,
 				2BAC48F82FCDABE2008ADCDD /* Base.swift in Sources */,
 				2BFD78AC2FD846A500C279F5 /* AudienceServiceProtocol.swift in Sources */,
+				2B255FEA2FDC36A300F08285 /* RoomEventSourceProtocol.swift in Sources */,
 				2BAC48F02FCDABB8008ADCDD /* MockLiveStreamService.swift in Sources */,
 				2BAC48EC2FCDABA9008ADCDD /* MockRoomService.swift in Sources */,
 				2BFD78B22FD851DF00C279F5 /* GiftServiceProtocol.swift in Sources */,
@@ -600,6 +614,8 @@
 				2BDF54452FCF06BC008EB79A /* RoomLifecycleStateMachine.swift in Sources */,
 				2BAC48E22FCDAB76008ADCDD /* ChatMessageCell.swift in Sources */,
 				2BAC48DC2FCDAB58008ADCDD /* LivePlayerPlaceholderView.swift in Sources */,
+				2B255FEC2FDC36B100F08285 /* SupabaseRealtimeService.swift in Sources */,
+				2B255FF12FDC3ABD00F08285 /* SupabaseConfig.swift in Sources */,
 				2B11EEAB2FD57E9E00F214DB /* LiveRoomPageCell.swift in Sources */,
 				2BAC48D42FCDAB29008ADCDD /* RoomListViewController.swift in Sources */,
 				2BAC48F22FCDABC4008ADCDD /* LiveRoom.swift in Sources */,
@@ -965,6 +981,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2B255FED2FDC393C00F08285 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
 		2BAC48FB2FCDB52E008ADCDD /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
@@ -976,6 +1000,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2B255FEE2FDC393C00F08285 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2B255FED2FDC393C00F08285 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
 		2BAC48FC2FCDB52E008ADCDD /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2BAC48FB2FCDB52E008ADCDD /* XCRemoteSwiftPackageReference "SnapKit" */;
