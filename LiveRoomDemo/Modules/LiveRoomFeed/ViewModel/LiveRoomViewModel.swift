@@ -15,10 +15,11 @@ final class LiveRoomViewModel {
     
     // MARK: - 服务层依赖
     
-    let chatService: ChatServiceProtocol
+    // 直播间实时事件源：统一承接聊天、礼物、在线人数等实时事件
+    let roomEventSource: RoomEventSourceProtocol
+
+    // 播放器服务：暂时仍使用 MockLiveStreamService，后续替换为 AVPlayerLiveStreamService
     let streamService: LiveStreamServiceProtocol
-    let audienceService: AudienceServiceProtocol
-    let giftService: GiftServiceProtocol
     
     // MARK: - 状态机
     
@@ -74,16 +75,12 @@ final class LiveRoomViewModel {
     
     init(
         liveRoom: LiveRoom,
-        chatService: ChatServiceProtocol = MockChatService(),
-        liveStreamService: LiveStreamServiceProtocol = MockLiveStreamService(),
-        audienceService: AudienceServiceProtocol = MockAudienceService(),
-        giftService: GiftServiceProtocol = MockGiftService()
+        roomEventSource: RoomEventSourceProtocol = SupabaseRealtimeService(),
+        liveStreamService: LiveStreamServiceProtocol = MockLiveStreamService()
     ) {
         self.activeRoom = liveRoom
-        self.chatService = chatService
+        self.roomEventSource = roomEventSource
         self.streamService = liveStreamService
-        self.audienceService = audienceService
-        self.giftService = giftService
         self.onlineCount = liveRoom.viewerCount
     }
 }

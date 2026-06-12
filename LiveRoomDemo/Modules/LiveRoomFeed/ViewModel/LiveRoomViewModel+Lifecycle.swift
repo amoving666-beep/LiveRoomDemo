@@ -15,9 +15,7 @@ extension LiveRoomViewModel {
     func enterRoom() {
         dispatchLiveRoomEvent(.enterRoom)
 
-        startReceivingChatEvents()
-        startReceivingAudienceEvents()
-        startReceivingGiftEvents()
+        startReceivingRoomEvents()
 
         dispatchLiveRoomEvent(.roomInfoLoaded)
         prepareLiveStream()
@@ -25,10 +23,8 @@ extension LiveRoomViewModel {
 
     // Feed Cell 离开屏幕时停止整个房间生命周期。
     func stopLiveRoomLifecycle() {
-        chatService.stopReceivingMessages()
+        roomEventSource.stop()
         streamService.stopStream()
-        audienceService.stopAudience()
-        giftService.stopGiftEvents()
 
         reconnectManager.reset()
 
@@ -82,10 +78,8 @@ extension LiveRoomViewModel {
         updateLiveStreamState(.idle)
         reconnectManager.reset()
 
-        chatService.stopReceivingMessages()
+        roomEventSource.stop()
         streamService.stopStream()
-        audienceService.stopAudience()
-        giftService.stopGiftEvents()
 
         onLiveRoomEnded?()
     }
@@ -99,10 +93,8 @@ extension LiveRoomViewModel {
         updateLiveStreamState(.idle)
         reconnectManager.reset()
 
-        chatService.stopReceivingMessages()
+        roomEventSource.stop()
         streamService.stopStream()
-        audienceService.stopAudience()
-        giftService.stopGiftEvents()
 
         onLiveRoomEnded?()
     }

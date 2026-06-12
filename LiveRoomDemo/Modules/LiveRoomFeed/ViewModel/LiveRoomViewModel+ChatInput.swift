@@ -60,23 +60,23 @@ extension LiveRoomViewModel {
     func sendChatText(_ text: String) {
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else { return }
-        
+
         if handleLiveRoomDebugCommand(trimmedText) {
             return
         }
-        
-        chatService.sendMessage(trimmedText) { [weak self] result in
-            guard let self else { return }
-            
-            switch result {
-            case .success(let message):
-                self.chatMessages.append(message)
-                self.onChatMessagesChanged?()
-                
-            case .failure(let error):
-                print("发送消息失败：\(error.localizedDescription)")
-            }
-        }
+
+        // 当前已切换为 Supabase Realtime 事件源。
+        // 普通用户输入先做本地乐观展示；后续再接入 Supabase insert，把本地发送也写入 live_room_events。
+        let message = ChatMessage(
+            id: UUID().uuidString,
+            type: .user,
+            userName: "我",
+            content: trimmedText,
+            timestamp: Date()
+        )
+
+        chatMessages.append(message)
+        onChatMessagesChanged?()
     }
     
     // 根据下标安全获取聊天消息，避免数组越界。

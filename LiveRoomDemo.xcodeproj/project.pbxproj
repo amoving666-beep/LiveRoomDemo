@@ -37,10 +37,8 @@
 		2BAC48E22FCDAB76008ADCDD /* ChatMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48E12FCDAB76008ADCDD /* ChatMessageCell.swift */; };
 		2BAC48E42FCDAB82008ADCDD /* LiveRoomViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48E32FCDAB82008ADCDD /* LiveRoomViewModel.swift */; };
 		2BAC48E62FCDAB8D008ADCDD /* RoomServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48E52FCDAB8D008ADCDD /* RoomServiceProtocol.swift */; };
-		2BAC48E82FCDAB96008ADCDD /* ChatServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48E72FCDAB96008ADCDD /* ChatServiceProtocol.swift */; };
 		2BAC48EA2FCDAB9E008ADCDD /* LiveStreamServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48E92FCDAB9E008ADCDD /* LiveStreamServiceProtocol.swift */; };
 		2BAC48EC2FCDABA9008ADCDD /* MockRoomService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48EB2FCDABA9008ADCDD /* MockRoomService.swift */; };
-		2BAC48EE2FCDABB1008ADCDD /* MockChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48ED2FCDABB1008ADCDD /* MockChatService.swift */; };
 		2BAC48F02FCDABB8008ADCDD /* MockLiveStreamService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48EF2FCDABB8008ADCDD /* MockLiveStreamService.swift */; };
 		2BAC48F22FCDABC4008ADCDD /* LiveRoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48F12FCDABC4008ADCDD /* LiveRoom.swift */; };
 		2BAC48F42FCDABCC008ADCDD /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC48F32FCDABCC008ADCDD /* ChatMessage.swift */; };
@@ -53,11 +51,7 @@
 		2BDF54452FCF06BC008EB79A /* RoomLifecycleStateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDF54442FCF06BC008EB79A /* RoomLifecycleStateMachine.swift */; };
 		2BDF54482FCF3522008EB79A /* KeyboardObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDF54472FCF3522008EB79A /* KeyboardObserver.swift */; };
 		2BFD78AA2FD8468900C279F5 /* AudienceEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFD78A92FD8468900C279F5 /* AudienceEvent.swift */; };
-		2BFD78AC2FD846A500C279F5 /* AudienceServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFD78AB2FD846A500C279F5 /* AudienceServiceProtocol.swift */; };
-		2BFD78AE2FD8470500C279F5 /* MockAudienceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFD78AD2FD8470500C279F5 /* MockAudienceService.swift */; };
 		2BFD78B02FD851C700C279F5 /* GiftEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFD78AF2FD851C700C279F5 /* GiftEvent.swift */; };
-		2BFD78B22FD851DF00C279F5 /* GiftServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFD78B12FD851DF00C279F5 /* GiftServiceProtocol.swift */; };
-		2BFD78B42FD853EE00C279F5 /* MockGiftService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFD78B32FD853EE00C279F5 /* MockGiftService.swift */; };
 		2BFD78B62FD858B100C279F5 /* GiftQueueManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFD78B52FD858B100C279F5 /* GiftQueueManager.swift */; };
 		2BFD78B82FD858C600C279F5 /* GiftAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFD78B72FD858C600C279F5 /* GiftAnimationView.swift */; };
 /* End PBXBuildFile section */
@@ -113,10 +107,8 @@
 		2BAC48E12FCDAB76008ADCDD /* ChatMessageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageCell.swift; sourceTree = "<group>"; };
 		2BAC48E32FCDAB82008ADCDD /* LiveRoomViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoomViewModel.swift; sourceTree = "<group>"; };
 		2BAC48E52FCDAB8D008ADCDD /* RoomServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomServiceProtocol.swift; sourceTree = "<group>"; };
-		2BAC48E72FCDAB96008ADCDD /* ChatServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatServiceProtocol.swift; sourceTree = "<group>"; };
 		2BAC48E92FCDAB9E008ADCDD /* LiveStreamServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStreamServiceProtocol.swift; sourceTree = "<group>"; };
 		2BAC48EB2FCDABA9008ADCDD /* MockRoomService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockRoomService.swift; sourceTree = "<group>"; };
-		2BAC48ED2FCDABB1008ADCDD /* MockChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockChatService.swift; sourceTree = "<group>"; };
 		2BAC48EF2FCDABB8008ADCDD /* MockLiveStreamService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockLiveStreamService.swift; sourceTree = "<group>"; };
 		2BAC48F12FCDABC4008ADCDD /* LiveRoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveRoom.swift; sourceTree = "<group>"; };
 		2BAC48F32FCDABCC008ADCDD /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
@@ -128,11 +120,7 @@
 		2BDF54442FCF06BC008EB79A /* RoomLifecycleStateMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomLifecycleStateMachine.swift; sourceTree = "<group>"; };
 		2BDF54472FCF3522008EB79A /* KeyboardObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardObserver.swift; sourceTree = "<group>"; };
 		2BFD78A92FD8468900C279F5 /* AudienceEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudienceEvent.swift; sourceTree = "<group>"; };
-		2BFD78AB2FD846A500C279F5 /* AudienceServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudienceServiceProtocol.swift; sourceTree = "<group>"; };
-		2BFD78AD2FD8470500C279F5 /* MockAudienceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAudienceService.swift; sourceTree = "<group>"; };
 		2BFD78AF2FD851C700C279F5 /* GiftEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftEvent.swift; sourceTree = "<group>"; };
-		2BFD78B12FD851DF00C279F5 /* GiftServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftServiceProtocol.swift; sourceTree = "<group>"; };
-		2BFD78B32FD853EE00C279F5 /* MockGiftService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockGiftService.swift; sourceTree = "<group>"; };
 		2BFD78B52FD858B100C279F5 /* GiftQueueManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftQueueManager.swift; sourceTree = "<group>"; };
 		2BFD78B72FD858C600C279F5 /* GiftAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftAnimationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -225,6 +213,14 @@
 			path = View;
 			sourceTree = "<group>";
 		};
+		2B255FF22FDC555900F08285 /* Realtime */ = {
+			isa = PBXGroup;
+			children = (
+				2B255FEB2FDC36B100F08285 /* SupabaseRealtimeService.swift */,
+			);
+			path = Realtime;
+			sourceTree = "<group>";
+		};
 		2BA071B82FD994BA00244644 /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -296,6 +292,7 @@
 		2BAC48B62FCDA806008ADCDD /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				2B255FF22FDC555900F08285 /* Realtime */,
 				2B11EEA22FD53EAB00F214DB /* Managers */,
 				2BAC48CE2FCDAACC008ADCDD /* Protocols */,
 				2BAC48CF2FCDAAD5008ADCDD /* Mock */,
@@ -390,12 +387,9 @@
 		2BAC48CE2FCDAACC008ADCDD /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
-				2B255FE92FDC36A300F08285 /* RoomEventSourceProtocol.swift */,
 				2BAC48E52FCDAB8D008ADCDD /* RoomServiceProtocol.swift */,
-				2BAC48E72FCDAB96008ADCDD /* ChatServiceProtocol.swift */,
 				2BAC48E92FCDAB9E008ADCDD /* LiveStreamServiceProtocol.swift */,
-				2BFD78AB2FD846A500C279F5 /* AudienceServiceProtocol.swift */,
-				2BFD78B12FD851DF00C279F5 /* GiftServiceProtocol.swift */,
+				2B255FE92FDC36A300F08285 /* RoomEventSourceProtocol.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -403,12 +397,8 @@
 		2BAC48CF2FCDAAD5008ADCDD /* Mock */ = {
 			isa = PBXGroup;
 			children = (
-				2B255FEB2FDC36B100F08285 /* SupabaseRealtimeService.swift */,
 				2BAC48EB2FCDABA9008ADCDD /* MockRoomService.swift */,
-				2BAC48ED2FCDABB1008ADCDD /* MockChatService.swift */,
 				2BAC48EF2FCDABB8008ADCDD /* MockLiveStreamService.swift */,
-				2BFD78AD2FD8470500C279F5 /* MockAudienceService.swift */,
-				2BFD78B32FD853EE00C279F5 /* MockGiftService.swift */,
 			);
 			path = Mock;
 			sourceTree = "<group>";
@@ -577,27 +567,21 @@
 				2BAC48FA2FCDABEB008ADCDD /* Extensions.swift in Sources */,
 				2BAC48F62FCDABD4008ADCDD /* LiveStreamState.swift in Sources */,
 				2BAC48C52FCDA806008ADCDD /* AppDelegate.swift in Sources */,
-				2BAC48E82FCDAB96008ADCDD /* ChatServiceProtocol.swift in Sources */,
 				2BDF54412FCF0645008EB79A /* RoomLifecycleState.swift in Sources */,
 				2BAC48E02FCDAB6D008ADCDD /* ChatInputView.swift in Sources */,
 				2BAC48C62FCDA806008ADCDD /* SceneDelegate.swift in Sources */,
-				2BFD78B42FD853EE00C279F5 /* MockGiftService.swift in Sources */,
-				2BFD78AE2FD8470500C279F5 /* MockAudienceService.swift in Sources */,
 				2BAC48EA2FCDAB9E008ADCDD /* LiveStreamServiceProtocol.swift in Sources */,
 				2B11EEA92FD5780500F214DB /* LiveRoomFeedViewController.swift in Sources */,
 				2BAC48E42FCDAB82008ADCDD /* LiveRoomViewModel.swift in Sources */,
-				2BAC48EE2FCDABB1008ADCDD /* MockChatService.swift in Sources */,
 				2B11EEA42FD53EB800F214DB /* ReconnectManager.swift in Sources */,
 				2BAC48D62FCDAB36008ADCDD /* RoomListViewModel.swift in Sources */,
 				2BDF54432FCF064F008EB79A /* LiveRoomEvent.swift in Sources */,
 				2BFD78AA2FD8468900C279F5 /* AudienceEvent.swift in Sources */,
 				2BAC48E62FCDAB8D008ADCDD /* RoomServiceProtocol.swift in Sources */,
 				2BAC48F82FCDABE2008ADCDD /* Base.swift in Sources */,
-				2BFD78AC2FD846A500C279F5 /* AudienceServiceProtocol.swift in Sources */,
 				2B255FEA2FDC36A300F08285 /* RoomEventSourceProtocol.swift in Sources */,
 				2BAC48F02FCDABB8008ADCDD /* MockLiveStreamService.swift in Sources */,
 				2BAC48EC2FCDABA9008ADCDD /* MockRoomService.swift in Sources */,
-				2BFD78B22FD851DF00C279F5 /* GiftServiceProtocol.swift in Sources */,
 				2BA071B12FD9826F00244644 /* LiveRoomViewModel+RoomEvent.swift in Sources */,
 				2B5BDAA52FD314630048CC88 /* ChatEvent.swift in Sources */,
 				2BAC48D22FCDAB18008ADCDD /* AppRouter.swift in Sources */,
@@ -686,7 +670,6 @@
 				INFOPLIST_FILE = LiveRoomDemo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
@@ -719,7 +702,6 @@
 				INFOPLIST_FILE = LiveRoomDemo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
