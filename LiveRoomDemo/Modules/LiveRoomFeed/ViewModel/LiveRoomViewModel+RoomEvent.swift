@@ -77,7 +77,6 @@ extension LiveRoomViewModel {
     // 直播间业务事件统一入口。
     // Realtime 事件源推来的 Chat / Audience / Gift 统一在这里分发。
     private func routeRoomEvent(_ event: LiveRoomBusinessEvent) {
-        print("routeRoomEvent = \(event)")
         switch event {
         case .chat(let message):
             handleChatMessage(message)
@@ -92,6 +91,12 @@ extension LiveRoomViewModel {
 
     // 处理聊天消息事件，统一追加到聊天列表并刷新页面。
     private func handleChatMessage(_ message: ChatMessage) {
+        if hasHandledMessageID(message.id) {
+            print("忽略重复消息 messageID = \(message.id)")
+            return
+        }
+
+        markMessageIDHandled(message.id)
         chatMessages.append(message)
         onChatMessagesChanged?()
     }

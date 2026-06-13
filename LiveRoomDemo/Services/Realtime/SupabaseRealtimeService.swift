@@ -100,6 +100,42 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
         onConnectionStateChanged?(.disconnected)
     }
 
+    // 发送聊天文本到 Supabase，写入后会通过 Realtime 推回客户端。
+    func sendChatText(roomID: String, userName: String, content: String) {
+        Task { [weak self] in
+            guard let self else { return }
+
+            do {
+                // 生成客户端消息 ID，用于 Realtime 重复推送时去重。
+                let messageID = UUID().uuidString
+
+                // payload 对应 live_room_events.payload 字段，只放聊天内容本身。
+                let payload = ChatInsertPayload(
+                    messageID: messageID,
+                    userName: userName,
+                    content: content
+                )
+
+                // event 对应 live_room_events 表的一整行数据。
+                let event = LiveRoomEventInsertPayload(
+                    roomID: roomID,
+                    eventType: "chat",
+                    payload: payload
+                )
+
+                // 写入 Supabase 表；insert 成功后 Realtime 会再把这条事件推回客户端。
+                try await supabaseClient
+                    .from("live_room_events")
+                    .insert(event)
+                    .execute()
+
+                log("发送 chat 成功 | roomID=\(roomID) | messageID=\(messageID) | userName=\(userName) | content=\(content)")
+            } catch {
+                log("发送 chat 失败：\(error.localizedDescription)")
+            }
+        }
+    }
+
     // 处理数据库 insert 记录，按 event_type 分发。
     @MainActor
     private func handleInsertRecord(_ record: [String: AnyJSON]) {
@@ -138,12 +174,13 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
               let content = payload.objectValue?["content"]?.stringValue else {
             log("chat payload 解析失败")
             return
-            
         }
-        log("chat 解析成功 userName=\(userName), content=\(content)")
+
+        let messageID = payload.objectValue?["messageID"]?.stringValue ?? UUID().uuidString
+        log("chat 解析成功 messageID=\(messageID), userName=\(userName), content=\(content)")
         
         let message = ChatMessage(
-            id: UUID().uuidString,
+            id: messageID,
             type: .user,
             userName: userName,
             content: content,
@@ -204,9 +241,10 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
 
         switch eventType {
         case "chat":
+            let messageID = payload?.objectValue?["messageID"]?.stringValue ?? "nil"
             let userName = payload?.objectValue?["userName"]?.stringValue ?? "nil"
             let content = payload?.objectValue?["content"]?.stringValue ?? "nil"
-            log("收到 chat | roomID=\(roomID) | userName=\(userName) | content=\(content)")
+            log("收到 chat | roomID=\(roomID) | messageID=\(messageID) | userName=\(userName) | content=\(content)")
 
         case "gift":
             let senderName = payload?.objectValue?["senderName"]?.stringValue ?? "nil"
@@ -222,4 +260,24 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
             log("收到 unknown | roomID=\(roomID) | eventType=\(eventType)")
         }
     }
+}
+
+// MARK: - Supabase Insert Models
+
+private struct LiveRoomEventInsertPayload: Encodable {
+    let roomID: String
+    let eventType: String
+    let payload: ChatInsertPayload
+
+    enum CodingKeys: String, CodingKey {
+        case roomID = "room_id"
+        case eventType = "event_type"
+        case payload
+    }
+}
+
+private struct ChatInsertPayload: Encodable {
+    let messageID: String
+    let userName: String
+    let content: String
 }

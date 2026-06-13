@@ -1,4 +1,3 @@
-
 //
 //  LiveRoomViewModel+ChatInput.swift
 //  LiveRoomDemo
@@ -65,18 +64,12 @@ extension LiveRoomViewModel {
             return
         }
 
-        // 当前已切换为 Supabase Realtime 事件源。
-        // 普通用户输入先做本地乐观展示；后续再接入 Supabase insert，把本地发送也写入 live_room_events。
-        let message = ChatMessage(
-            id: UUID().uuidString,
-            type: .user,
+        // 写入 Supabase；成功后会通过 Realtime 推回并刷新聊天区。
+        roomEventSource.sendChatText(
+            roomID: activeRoom.id,
             userName: "我",
-            content: trimmedText,
-            timestamp: Date()
+            content: trimmedText
         )
-
-        chatMessages.append(message)
-        onChatMessagesChanged?()
     }
     
     // 根据下标安全获取聊天消息，避免数组越界。

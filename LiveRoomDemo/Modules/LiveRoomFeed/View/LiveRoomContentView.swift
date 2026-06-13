@@ -213,7 +213,15 @@ final class LiveRoomContentView: UIView {
         let observer = KeyboardObserver(containerView: self)
 
         observer.onKeyboardOffsetChange = { [weak self] offset in
-            self?.chatMessageInputBottomConstraint?.update(offset: offset)
+
+            guard let self else { return }
+            
+            // Feed Cell 高度有限，不能让键盘把输入框无限往上顶。
+            let fixedHeight: CGFloat = 72 + 220 + 56
+            let maxKeyboardOffset = max(0, self.bounds.height - fixedHeight)
+            let safeOffset = max(offset, -maxKeyboardOffset)
+            self.chatMessageInputBottomConstraint?.update(offset: safeOffset)
+
         }
 
         observer.start()

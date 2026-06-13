@@ -14,4 +14,7 @@ protocol RoomEventSourceProtocol: AnyObject {
 
     func start(roomID: String)
     func stop()
+
+    // 发送聊天文本，写入实时事件源。
+    func sendChatText(roomID: String, userName: String, content: String)
 }

@@ -31,6 +31,9 @@ final class LiveRoomViewModel {
     
     // MARK: - 页面状态
     
+    // 已处理消息 ID，防止 Realtime 重复推送导致聊天重复显示
+    private var handledMessageIDs = Set<String>()
+
     // 聊天消息
     var chatMessages: [ChatMessage] = [
         ChatMessage(
@@ -82,5 +85,14 @@ final class LiveRoomViewModel {
         self.roomEventSource = roomEventSource
         self.streamService = liveStreamService
         self.onlineCount = liveRoom.viewerCount
+    }
+    // 根据 messageID 判断是否已经处理过。
+    func hasHandledMessageID(_ messageID: String) -> Bool {
+        handledMessageIDs.contains(messageID)
+    }
+
+    // 标记 messageID 已处理。
+    func markMessageIDHandled(_ messageID: String) {
+        handledMessageIDs.insert(messageID)
     }
 }
