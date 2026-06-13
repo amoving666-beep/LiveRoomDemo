@@ -20,7 +20,13 @@ extension LiveRoomViewModel {
 
         roomEventSource.onConnectionStateChanged = { [weak self] state in
             guard let self else { return }
+
+            let oldState = self.imState
             self.updateIMState(state)
+
+            if state == .connected, oldState != .connecting {
+                self.fetchMissedRoomEventEnvelopes()
+            }
         }
 
         roomEventSource.onRoomEventEnvelopeReceived = { [weak self] envelope in
@@ -29,6 +35,19 @@ extension LiveRoomViewModel {
         }
 
         roomEventSource.start(roomID: activeRoom.id)
+    }
+
+    // Realtime 重连成功后，补拉断线期间漏掉的事件。
+     func fetchMissedRoomEventEnvelopes() {
+        let lastSeq = currentLastReceivedRoomEventSeq()
+
+        roomEventSource.fetchMissedRoomEventEnvelopes(roomID: activeRoom.id, afterSeq: lastSeq) { [weak self] envelopes in
+            guard let self else { return }
+
+            for envelope in envelopes {
+                self.routeRoomEventEnvelope(envelope)
+            }
+        }
     }
 
     // MARK: - 礼物事件
@@ -77,6 +96,12 @@ extension LiveRoomViewModel {
     // 直播间实时事件统一入口。
     // 先记录 seq，再分发具体业务事件。
     private func routeRoomEventEnvelope(_ envelope: RoomEventEnvelope) {
+        if hasHandledRoomEventID(envelope.eventID) {
+            print("忽略重复事件 eventID = \(envelope.eventID)")
+            return
+        }
+
+        markRoomEventIDHandled(envelope.eventID)
         updateLastReceivedRoomEventSeq(envelope.seq)
         routeRoomBusinessEvent(envelope.event)
     }

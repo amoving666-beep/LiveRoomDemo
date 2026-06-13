@@ -40,8 +40,28 @@ extension LiveRoomViewModel {
         }
     }
 
+    // 绑定网络监听，网络恢复后补拉断线期间漏掉的事件。
+    func bindRealtimeNetworkMonitor() {
+        realtimeNetworkMonitor.onNetworkUnavailable = { [weak self] in
+            guard let self else { return }
+            self.updateIMState(.disconnected)
+        }
+
+        realtimeNetworkMonitor.onNetworkAvailableAgain = { [weak self] in
+            guard let self else { return }
+
+            self.updateIMState(.connecting)
+            self.markRealtimeRecoveryNeeded()
+
+            // 网络恢复后不能只调用 roomEventSource.start。
+            // startReceivingRoomEvents 会重新绑定回调，再重新订阅 Realtime。
+            self.startReceivingRoomEvents()
+        }
+    }
+
     // Feed Cell 离开屏幕时停止整个房间生命周期。
     func stopLiveRoomLifecycle() {
+        realtimeNetworkMonitor.stop()
         roomEventSource.stop()
         streamService.stopStream()
 
@@ -97,6 +117,7 @@ extension LiveRoomViewModel {
         updateLiveStreamState(.idle)
         reconnectManager.reset()
 
+        realtimeNetworkMonitor.stop()
         roomEventSource.stop()
         streamService.stopStream()
 
@@ -112,6 +133,7 @@ extension LiveRoomViewModel {
         updateLiveStreamState(.idle)
         reconnectManager.reset()
 
+        realtimeNetworkMonitor.stop()
         roomEventSource.stop()
         streamService.stopStream()
 

@@ -28,6 +28,9 @@ final class LiveRoomViewModel {
 
     // 重连管理器
     let reconnectManager = ReconnectManager()
+
+    // 网络监听器，用于网络恢复后自动补拉漏消息
+    let realtimeNetworkMonitor = RealtimeNetworkMonitor()
     
     // MARK: - 页面状态
     
@@ -36,6 +39,12 @@ final class LiveRoomViewModel {
 
     // 最近处理到的事件 seq，用于重连后补拉漏掉的事件
     private var lastReceivedRoomEventSeq: Int = 0
+
+    // 已处理事件 ID，防止补拉和 Realtime 同时到达导致重复处理
+    private var handledRoomEventIDs = Set<String>()
+
+    // 网络恢复后等待 Realtime 重新连接成功，再补拉漏事件
+    private var isWaitingForRealtimeRecovery = false
 
     // 聊天消息
     var chatMessages: [ChatMessage] = [
@@ -88,6 +97,9 @@ final class LiveRoomViewModel {
         self.roomEventSource = roomEventSource
         self.streamService = liveStreamService
         self.onlineCount = liveRoom.viewerCount
+
+        bindRealtimeNetworkMonitor()
+        realtimeNetworkMonitor.start()
     }
     // 根据 messageID 判断是否已经处理过。
     func hasHandledMessageID(_ messageID: String) -> Bool {
@@ -107,5 +119,27 @@ final class LiveRoomViewModel {
     // 当前最近处理到的事件 seq。
     func currentLastReceivedRoomEventSeq() -> Int {
         lastReceivedRoomEventSeq
+    }
+
+    // 判断事件 ID 是否已经处理过。
+    func hasHandledRoomEventID(_ eventID: String) -> Bool {
+        handledRoomEventIDs.contains(eventID)
+    }
+
+    // 标记事件 ID 已处理。
+    func markRoomEventIDHandled(_ eventID: String) {
+        handledRoomEventIDs.insert(eventID)
+    }
+
+    // 标记：网络恢复后，需要等 Realtime 重新连接成功再补拉漏事件。
+    func markRealtimeRecoveryNeeded() {
+        isWaitingForRealtimeRecovery = true
+    }
+
+    // 消费一次补偿标记，避免每次 connected 都重复补拉。
+    func consumeRealtimeRecoveryNeeded() -> Bool {
+        guard isWaitingForRealtimeRecovery else { return false }
+        isWaitingForRealtimeRecovery = false
+        return true
     }
 }
