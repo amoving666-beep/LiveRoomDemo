@@ -10,8 +10,8 @@ import Supabase
 
 // 监听 Supabase Realtime，把数据库事件转换成直播间业务事件。
 final class SupabaseRealtimeService: RoomEventSourceProtocol {
-    // 实时事件回调，通知 ViewModel 分发。
-    var onEvent: ((LiveRoomBusinessEvent) -> Void)?
+    // 收到带 seq 的实时事件，通知 ViewModel 分发。
+    var onRoomEventEnvelopeReceived: ((RoomEventEnvelope) -> Void)?
     // Realtime 连接状态回调。
     var onConnectionStateChanged: ((IMConnectionState) -> Void)?
 
@@ -96,8 +96,84 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
         realtimeTask?.cancel()
         realtimeTask = nil
         currentRoomID = nil
-        onEvent = nil
+        onRoomEventEnvelopeReceived = nil
         onConnectionStateChanged?(.disconnected)
+    }
+
+    // 拉取最近聊天历史，进入房间时先补一屏旧消息。
+    func fetchRecentChatMessages(roomID: String, limit: Int, completion: @escaping ([ChatMessage]) -> Void) {
+        Task { [weak self] in
+            guard let self else { return }
+
+            do {
+                let records: [LiveRoomEventRecord] = try await supabaseClient
+                    .from("live_room_events")
+                    .select("id, room_id, event_type, payload, created_at, seq")
+                    .eq("room_id", value: roomID)
+                    .eq("event_type", value: "chat")
+                    .order("seq", ascending: false)
+                    .limit(limit)
+                    .execute()
+                    .value
+
+                let messages = records
+                    .reversed()
+                    .compactMap { record -> ChatMessage? in
+                        guard let userName = record.payload.userName,
+                              let content = record.payload.content else {
+                            return nil
+                        }
+
+                        return ChatMessage(
+                            id: record.payload.messageID ?? record.id,
+                            type: .user,
+                            userName: userName,
+                            content: content,
+                            timestamp: record.createdAt
+                        )
+                    }
+
+                await MainActor.run {
+                    self.log("拉取历史消息成功 roomID=\(roomID), count=\(messages.count)")
+                    completion(messages)
+                }
+            } catch {
+                await MainActor.run {
+                    self.log("拉取历史消息失败：\(error.localizedDescription)")
+                    completion([])
+                }
+            }
+        }
+    }
+
+    // 重连后补拉漏掉的事件。
+    func fetchMissedRoomEventEnvelopes(roomID: String, afterSeq: Int, completion: @escaping ([RoomEventEnvelope]) -> Void) {
+        Task { [weak self] in
+            guard let self else { return }
+
+            do {
+                let records: [LiveRoomEventRecord] = try await supabaseClient
+                    .from("live_room_events")
+                    .select("id, room_id, event_type, payload, created_at, seq")
+                    .eq("room_id", value: roomID)
+                    .gt("seq", value: afterSeq)
+                    .order("seq", ascending: true)
+                    .execute()
+                    .value
+
+                let envelopes = records.compactMap { self.makeRoomEventEnvelope(from: $0) }
+
+                await MainActor.run {
+                    self.log("补拉漏掉事件成功 roomID=\(roomID), afterSeq=\(afterSeq), count=\(envelopes.count)")
+                    completion(envelopes)
+                }
+            } catch {
+                await MainActor.run {
+                    self.log("补拉漏掉事件失败：\(error.localizedDescription)")
+                    completion([])
+                }
+            }
+        }
     }
 
     // 发送聊天文本到 Supabase，写入后会通过 Realtime 推回客户端。
@@ -151,15 +227,18 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
             return
         }
 
+        let eventID = record["id"]?.stringValue ?? UUID().uuidString
+        let seq = record["seq"]?.intValue ?? 0
+
         switch eventType {
         case "chat":
-            handleChatPayload(payload)
+            handleChatPayload(payload, eventID: eventID, seq: seq)
 
         case "gift":
-            handleGiftPayload(payload, roomID: roomID)
+            handleGiftPayload(payload, roomID: roomID, eventID: eventID, seq: seq)
 
         case "audience":
-            handleAudiencePayload(payload, roomID: roomID)
+            handleAudiencePayload(payload, roomID: roomID, eventID: eventID, seq: seq)
 
         default:
             log("未处理的实时事件类型：\(eventType)")
@@ -168,7 +247,7 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
 
     // 解析聊天 payload，转成 ChatMessage。
     @MainActor
-    private func handleChatPayload(_ payload: AnyJSON) {
+    private func handleChatPayload(_ payload: AnyJSON, eventID: String, seq: Int) {
         
         guard let userName = payload.objectValue?["userName"]?.stringValue,
               let content = payload.objectValue?["content"]?.stringValue else {
@@ -187,12 +266,18 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
             timestamp: Date()
         )
 
-        onEvent?(.chat(message))
+        let envelope = RoomEventEnvelope(
+            eventID: eventID,
+            seq: seq,
+            event: .chat(message)
+        )
+
+        onRoomEventEnvelopeReceived?(envelope)
     }
 
     // 解析礼物 payload，转成 GiftEvent。
     @MainActor
-    private func handleGiftPayload(_ payload: AnyJSON, roomID: String) {
+    private func handleGiftPayload(_ payload: AnyJSON, roomID: String, eventID: String, seq: Int) {
         guard let senderName = payload.objectValue?["senderName"]?.stringValue,
               let giftName = payload.objectValue?["giftName"]?.stringValue else {
             return
@@ -209,12 +294,18 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
             shouldPlayAnimation: shouldPlayAnimation
         )
 
-        onEvent?(.gift(event))
+        let envelope = RoomEventEnvelope(
+            eventID: eventID,
+            seq: seq,
+            event: .gift(event)
+        )
+
+        onRoomEventEnvelopeReceived?(envelope)
     }
 
     // 解析在线人数 payload，转成 AudienceEvent。
     @MainActor
-    private func handleAudiencePayload(_ payload: AnyJSON, roomID: String) {
+    private func handleAudiencePayload(_ payload: AnyJSON, roomID: String, eventID: String, seq: Int) {
         guard let onlineCount = payload.objectValue?["onlineCount"]?.intValue else {
             return
         }
@@ -225,7 +316,78 @@ final class SupabaseRealtimeService: RoomEventSourceProtocol {
             changeCount: 0
         )
 
-        onEvent?(.audience(event))
+        let envelope = RoomEventEnvelope(
+            eventID: eventID,
+            seq: seq,
+            event: .audience(event)
+        )
+
+        onRoomEventEnvelopeReceived?(envelope)
+    }
+
+    // 把数据库查询记录转换成 RoomEventEnvelope。
+    private func makeRoomEventEnvelope(from record: LiveRoomEventRecord) -> RoomEventEnvelope? {
+        switch record.eventType {
+        case "chat":
+            guard let userName = record.payload.userName,
+                  let content = record.payload.content else {
+                return nil
+            }
+
+            let message = ChatMessage(
+                id: record.payload.messageID ?? record.id,
+                type: .user,
+                userName: userName,
+                content: content,
+                timestamp: record.createdAt
+            )
+
+            return RoomEventEnvelope(
+                eventID: record.id,
+                seq: record.seq,
+                event: .chat(message)
+            )
+
+        case "gift":
+            guard let senderName = record.payload.senderName,
+                  let giftName = record.payload.giftName else {
+                return nil
+            }
+
+            let giftEvent = GiftEvent(
+                roomID: record.roomID,
+                senderName: senderName,
+                giftName: giftName,
+                giftCount: record.payload.giftCount ?? 1,
+                shouldPlayAnimation: record.payload.shouldPlayAnimation ?? true
+            )
+
+            return RoomEventEnvelope(
+                eventID: record.id,
+                seq: record.seq,
+                event: .gift(giftEvent)
+            )
+
+        case "audience":
+            guard let onlineCount = record.payload.onlineCount else {
+                return nil
+            }
+
+            let audienceEvent = AudienceEvent(
+                roomID: record.roomID,
+                onlineCount: onlineCount,
+                changeCount: 0
+            )
+
+            return RoomEventEnvelope(
+                eventID: record.id,
+                seq: record.seq,
+                event: .audience(audienceEvent)
+            )
+
+        default:
+            return nil
+        }
     }
 
     // MARK: - 调试日志
@@ -280,4 +442,36 @@ private struct ChatInsertPayload: Encodable {
     let messageID: String
     let userName: String
     let content: String
+}
+
+// MARK: - Supabase Query Models
+
+private struct LiveRoomEventRecord: Decodable {
+    let id: String
+    let roomID: String
+    let eventType: String
+    let payload: ChatRecordPayload
+    let createdAt: Date
+    let seq: Int
+    
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case roomID = "room_id"
+        case eventType = "event_type"
+        case payload
+        case createdAt = "created_at"
+        case seq
+    }
+}
+
+private struct ChatRecordPayload: Decodable {
+    let messageID: String?
+    let userName: String?
+    let content: String?
+    let senderName: String?
+    let giftName: String?
+    let giftCount: Int?
+    let shouldPlayAnimation: Bool?
+    let onlineCount: Int?
 }

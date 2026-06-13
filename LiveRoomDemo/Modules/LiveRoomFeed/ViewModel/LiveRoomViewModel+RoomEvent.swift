@@ -23,9 +23,9 @@ extension LiveRoomViewModel {
             self.updateIMState(state)
         }
 
-        roomEventSource.onEvent = { [weak self] event in
+        roomEventSource.onRoomEventEnvelopeReceived = { [weak self] envelope in
             guard let self else { return }
-            self.routeRoomEvent(event)
+            self.routeRoomEventEnvelope(envelope)
         }
 
         roomEventSource.start(roomID: activeRoom.id)
@@ -47,7 +47,7 @@ extension LiveRoomViewModel {
             timestamp: Date()
         )
 
-        routeRoomEvent(.chat(message))
+        handleChatMessage(message)
 
         if event.shouldPlayAnimation {
             onGiftAnimationRequested?(event)
@@ -74,9 +74,16 @@ extension LiveRoomViewModel {
 
     // MARK: - RoomEvent 分发
 
+    // 直播间实时事件统一入口。
+    // 先记录 seq，再分发具体业务事件。
+    private func routeRoomEventEnvelope(_ envelope: RoomEventEnvelope) {
+        updateLastReceivedRoomEventSeq(envelope.seq)
+        routeRoomBusinessEvent(envelope.event)
+    }
+
     // 直播间业务事件统一入口。
     // Realtime 事件源推来的 Chat / Audience / Gift 统一在这里分发。
-    private func routeRoomEvent(_ event: LiveRoomBusinessEvent) {
+    private func routeRoomBusinessEvent(_ event: LiveRoomBusinessEvent) {
         switch event {
         case .chat(let message):
             handleChatMessage(message)

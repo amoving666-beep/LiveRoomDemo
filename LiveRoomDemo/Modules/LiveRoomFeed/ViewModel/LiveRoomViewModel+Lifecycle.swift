@@ -15,10 +15,29 @@ extension LiveRoomViewModel {
     func enterRoom() {
         dispatchLiveRoomEvent(.enterRoom)
 
+        fetchRecentChatMessages()
         startReceivingRoomEvents()
 
         dispatchLiveRoomEvent(.roomInfoLoaded)
         prepareLiveStream()
+    }
+
+    // 拉取最近聊天历史，进入房间时先补一屏旧消息。
+    func fetchRecentChatMessages() {
+        roomEventSource.fetchRecentChatMessages(roomID: activeRoom.id, limit: 30) { [weak self] messages in
+            guard let self else { return }
+
+            for message in messages {
+                if self.hasHandledMessageID(message.id) {
+                    continue
+                }
+
+                self.markMessageIDHandled(message.id)
+                self.chatMessages.append(message)
+            }
+
+            self.onChatMessagesChanged?()
+        }
     }
 
     // Feed Cell 离开屏幕时停止整个房间生命周期。

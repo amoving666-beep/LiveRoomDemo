@@ -34,6 +34,9 @@ final class LiveRoomViewModel {
     // 已处理消息 ID，防止 Realtime 重复推送导致聊天重复显示
     private var handledMessageIDs = Set<String>()
 
+    // 最近处理到的事件 seq，用于重连后补拉漏掉的事件
+    private var lastReceivedRoomEventSeq: Int = 0
+
     // 聊天消息
     var chatMessages: [ChatMessage] = [
         ChatMessage(
@@ -94,5 +97,15 @@ final class LiveRoomViewModel {
     // 标记 messageID 已处理。
     func markMessageIDHandled(_ messageID: String) {
         handledMessageIDs.insert(messageID)
+    }
+
+    // 更新最近处理到的事件 seq。
+    func updateLastReceivedRoomEventSeq(_ seq: Int) {
+        lastReceivedRoomEventSeq = max(lastReceivedRoomEventSeq, seq)
+    }
+
+    // 当前最近处理到的事件 seq。
+    func currentLastReceivedRoomEventSeq() -> Int {
+        lastReceivedRoomEventSeq
     }
 }
